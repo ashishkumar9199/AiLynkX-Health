@@ -38,6 +38,7 @@ interface AppContextType {
   // Stores & Medicines
   stores: PharmacyStore[];
   addStore: (store: Omit<PharmacyStore, 'id' | 'rating' | 'isPartnerStore'>) => void;
+  editStore: (store: PharmacyStore) => void;
   medicines: MedicineItem[];
   addMedicine: (med: Omit<MedicineItem, 'id'>) => void;
 
@@ -95,8 +96,38 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [portal, setPortalState] = useState<PortalType>('landing');
   const [language, setLanguageState] = useState<Language>('en');
 
-  const [doctors, setDoctors] = useState<Doctor[]>(initialDoctors);
-  const [stores, setStores] = useState<PharmacyStore[]>(initialStores);
+  const [doctors, setDoctors] = useState<Doctor[]>(() => {
+    const stored = localStorage.getItem('aily_doctors');
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        console.error('Error parsing stored doctors', e);
+      }
+    }
+    return initialDoctors;
+  });
+
+  const [stores, setStores] = useState<PharmacyStore[]>(() => {
+    const stored = localStorage.getItem('aily_stores');
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        console.error('Error parsing stored stores', e);
+      }
+    }
+    return initialStores;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('aily_doctors', JSON.stringify(doctors));
+  }, [doctors]);
+
+  useEffect(() => {
+    localStorage.setItem('aily_stores', JSON.stringify(stores));
+  }, [stores]);
+
   const [medicines, setMedicines] = useState<MedicineItem[]>(initialMedicines);
   const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
   const [sampleRequests, setSampleRequests] = useState<HomeSampleRequest[]>([]);
@@ -218,6 +249,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       type: 'system',
       targetPortal: 'pharmacy'
     });
+  };
+
+  const editStore = (updatedStore: PharmacyStore) => {
+    setStores(prev => prev.map(s => s.id === updatedStore.id ? updatedStore : s));
   };
 
   const addMedicine = (medData: Omit<MedicineItem, 'id'>) => {
@@ -462,6 +497,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       deleteDoctor,
       stores,
       addStore,
+      editStore,
       medicines,
       addMedicine,
       cart,

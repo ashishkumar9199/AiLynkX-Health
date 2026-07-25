@@ -29,9 +29,11 @@ export const AdminPortal: React.FC = () => {
   const { 
     doctors, 
     addDoctor, 
+    editDoctor,
     deleteDoctor, 
     stores, 
     addStore, 
+    editStore,
     medicines, 
     addMedicine, 
     appointments, 
@@ -110,8 +112,14 @@ export const AdminPortal: React.FC = () => {
   const [docAddress, setDocAddress] = useState('100 Health Way, Suite 400');
   const [docBio, setDocBio] = useState('Experienced specialist dedicated to patient wellness and digital telehealth consultations.');
   const [docLanguages, setDocLanguages] = useState('English, Spanish');
+  const [docUsername, setDocUsername] = useState('');
+  const [docPassword, setDocPassword] = useState('');
 
   const [docAddedSuccess, setDocAddedSuccess] = useState(false);
+
+  // States for password editing in Admin list
+  const [editingDocId, setEditingDocId] = useState<string | null>(null);
+  const [newDocPassword, setNewDocPassword] = useState('');
 
   // Pharmacy Store Form State
   const [storeName, setStoreName] = useState('');
@@ -119,7 +127,13 @@ export const AdminPortal: React.FC = () => {
   const [storePhone, setStorePhone] = useState('');
   const [storeLicense, setStoreLicense] = useState('');
   const [storeDelivery, setStoreDelivery] = useState('20-35 mins');
+  const [storeUsername, setStoreUsername] = useState('');
+  const [storePassword, setStorePassword] = useState('');
   const [storeAddedSuccess, setStoreAddedSuccess] = useState(false);
+
+  // States for pharmacy store password editing in Admin list
+  const [editingStoreId, setEditingStoreId] = useState<string | null>(null);
+  const [newStorePassword, setNewStorePassword] = useState('');
 
   // Medicine Form State
   const [medStoreId, setMedStoreId] = useState<string>('');
@@ -148,7 +162,10 @@ export const AdminPortal: React.FC = () => {
       hospital: docHospital,
       address: docAddress,
       bio: docBio,
-      languages: docLanguages.split(',').map(s => s.trim())
+      languages: docLanguages.split(',').map(s => s.trim()),
+      username: docUsername.trim() || `doc_${docName.toLowerCase().replace(/\s+/g, '_')}`,
+      password: docPassword.trim() || 'password123',
+      isActive: true
     });
 
     setDocAddedSuccess(true);
@@ -156,6 +173,8 @@ export const AdminPortal: React.FC = () => {
 
     // Reset fields
     setDocName('');
+    setDocUsername('');
+    setDocPassword('');
   };
 
   // Submit Pharmacy Store Form
@@ -169,12 +188,17 @@ export const AdminPortal: React.FC = () => {
       phone: storePhone || '+1 (800) 555-0100',
       licenseNumber: storeLicense || `PH-${Math.floor(10000 + Math.random() * 90000)}`,
       deliveryTime: storeDelivery,
-      image: 'https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=500&auto=format&fit=crop&q=80'
+      image: 'https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=500&auto=format&fit=crop&q=80',
+      username: storeUsername.trim() || `pharmacy_${storeName.toLowerCase().replace(/\s+/g, '_')}`,
+      password: storePassword.trim() || 'password123',
+      isActive: true
     });
 
     setStoreAddedSuccess(true);
     setTimeout(() => setStoreAddedSuccess(false), 4000);
     setStoreName('');
+    setStoreUsername('');
+    setStorePassword('');
   };
 
   // Submit Medicine Product Form
@@ -537,6 +561,39 @@ export const AdminPortal: React.FC = () => {
                 ></textarea>
               </div>
 
+              {/* Doctor Portal Credentials Section */}
+              <div className="p-4 bg-red-50/80 rounded-2xl border border-red-100 space-y-3">
+                <span className="font-extrabold text-red-950 block text-[11px] uppercase tracking-wider">
+                  🔑 Doctor Portal Access Credentials
+                </span>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Username *</label>
+                    <input
+                      type="text"
+                      id="admin-doc-username"
+                      value={docUsername}
+                      onChange={e => setDocUsername(e.target.value)}
+                      placeholder="e.g. sarah123"
+                      className="w-full p-2 bg-white rounded-lg border border-slate-300 font-medium"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Password *</label>
+                    <input
+                      type="text"
+                      id="admin-doc-password"
+                      value={docPassword}
+                      onChange={e => setDocPassword(e.target.value)}
+                      placeholder="e.g. secretPass"
+                      className="w-full p-2 bg-white rounded-lg border border-slate-300 font-medium"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
               <button
                 type="submit"
                 id="save-doctor-btn"
@@ -555,25 +612,119 @@ export const AdminPortal: React.FC = () => {
             </h2>
 
             <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
-              {doctors.map(doc => (
-                <div key={doc.id} className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between gap-3 text-xs">
-                  <div className="flex items-center gap-3">
-                    <img src={doc.avatar} alt={doc.name} className="w-10 h-10 rounded-xl object-cover" />
-                    <div>
-                      <h4 className="font-bold text-slate-900">{doc.name}</h4>
-                      <p className="text-[11px] text-blue-700 font-semibold">{doc.specialty} • ${doc.fee}</p>
-                    </div>
-                  </div>
+              {doctors.map(doc => {
+                const isActive = doc.isActive !== false; // defaults to true
+                const isEditingPassword = editingDocId === doc.id;
 
-                  <button
-                    onClick={() => deleteDoctor(doc.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                    title="Delete Doctor"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
+                const handleToggleActive = () => {
+                  editDoctor({
+                    ...doc,
+                    isActive: !isActive
+                  });
+                };
+
+                const handleSavePassword = () => {
+                  if (!newDocPassword.trim()) return;
+                  editDoctor({
+                    ...doc,
+                    password: newDocPassword.trim()
+                  });
+                  setEditingDocId(null);
+                  setNewDocPassword('');
+                };
+
+                return (
+                  <div key={doc.id} className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3 text-xs">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <img src={doc.avatar} alt={doc.name} className="w-12 h-12 rounded-xl object-cover border border-slate-100" />
+                        <div>
+                          <h4 className="font-extrabold text-slate-900 text-sm">{doc.name}</h4>
+                          <p className="text-[11px] text-blue-700 font-semibold">{doc.specialty} • ${doc.fee}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] text-slate-400">User: <strong className="text-slate-600 font-semibold">{doc.username || 'N/A'}</strong></span>
+                            <span className="text-slate-300">•</span>
+                            <span className="text-[10px] text-slate-400">Pass: <strong className="text-slate-600 font-semibold">{doc.password || 'N/A'}</strong></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={handleToggleActive}
+                          className={`px-2.5 py-1.5 rounded-xl font-bold text-[10px] uppercase transition-colors ${
+                            isActive 
+                              ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200' 
+                              : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                          }`}
+                          title={isActive ? 'Deactivate Doctor Portal' : 'Activate Doctor Portal'}
+                        >
+                          {isActive ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (isEditingPassword) {
+                              setEditingDocId(null);
+                            } else {
+                              setEditingDocId(doc.id);
+                              setNewDocPassword(doc.password || '');
+                            }
+                          }}
+                          className="px-2.5 py-1.5 bg-slate-50 text-slate-700 hover:bg-slate-100 rounded-xl font-bold border border-slate-200 text-[10px] uppercase"
+                          title="Change Doctor Password"
+                        >
+                          Password
+                        </button>
+                        <button
+                          onClick={() => deleteDoctor(doc.id)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
+                          title="Delete Doctor Profile"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
+                      <span className={`font-bold text-[10px] uppercase ${isActive ? 'text-emerald-700' : 'text-red-700'}`}>
+                        {isActive ? 'Portal Active & Listings Open' : 'PORTAL DEACTIVATED PERMANENTLY'}
+                      </span>
+                    </div>
+
+                    {/* Password Edit Mode */}
+                    {isEditingPassword && (
+                      <div className="mt-2 p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2">
+                        <div className="flex-1">
+                          <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Set New Password</label>
+                          <input
+                            type="text"
+                            value={newDocPassword}
+                            onChange={e => setNewDocPassword(e.target.value)}
+                            placeholder="Enter new password"
+                            className="w-full p-2 bg-white rounded-lg border border-slate-300 font-bold"
+                          />
+                        </div>
+                        <div className="flex items-end gap-1 mt-4">
+                          <button
+                            onClick={handleSavePassword}
+                            className="px-3 py-2 bg-red-600 text-white hover:bg-red-700 font-bold rounded-lg text-[10px] uppercase"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingDocId(null)}
+                            className="px-2 py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded-lg text-[10px] uppercase text-slate-700"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -646,6 +797,39 @@ export const AdminPortal: React.FC = () => {
                     placeholder="PH-2026-99"
                     className="w-full p-2.5 rounded-xl border border-slate-300"
                   />
+                </div>
+              </div>
+
+              {/* Store Portal Credentials Section */}
+              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 space-y-3">
+                <span className="font-extrabold text-amber-950 block text-[11px] uppercase tracking-wider">
+                  🔑 Pharmacy/Lab Partner Credentials
+                </span>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Store Username *</label>
+                    <input
+                      type="text"
+                      id="admin-store-username"
+                      value={storeUsername}
+                      onChange={e => setStoreUsername(e.target.value)}
+                      placeholder="e.g. medcentral"
+                      className="w-full p-2 bg-white rounded-lg border border-slate-300 font-medium"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Store Password *</label>
+                    <input
+                      type="text"
+                      id="admin-store-password"
+                      value={storePassword}
+                      onChange={e => setStorePassword(e.target.value)}
+                      placeholder="e.g. storePass123"
+                      className="w-full p-2 bg-white rounded-lg border border-slate-300 font-medium"
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -733,12 +917,105 @@ export const AdminPortal: React.FC = () => {
             </h2>
 
             <div className="space-y-3">
-              {stores.map(s => (
-                <div key={s.id} className="p-4 bg-white rounded-2xl border border-slate-200 text-xs space-y-1">
-                  <h4 className="font-bold text-slate-900">{s.name}</h4>
-                  <p className="text-slate-500">{s.address} • License: {s.licenseNumber}</p>
-                </div>
-              ))}
+              {stores.map(s => {
+                const isActive = s.isActive !== false;
+                const isEditingPassword = editingStoreId === s.id;
+
+                const handleToggleActive = () => {
+                  editStore({
+                    ...s,
+                    isActive: !isActive
+                  });
+                };
+
+                const handleSavePassword = () => {
+                  if (!newStorePassword.trim()) return;
+                  editStore({
+                    ...s,
+                    password: newStorePassword.trim()
+                  });
+                  setEditingStoreId(null);
+                  setNewStorePassword('');
+                };
+
+                return (
+                  <div key={s.id} className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm text-xs flex flex-col gap-3">
+                    <div className="flex justify-between items-start gap-4">
+                      <div>
+                        <h4 className="font-extrabold text-slate-900 text-sm">{s.name}</h4>
+                        <p className="text-slate-500 mt-0.5">{s.address} • License: {s.licenseNumber}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] text-slate-400">User: <strong className="text-slate-600 font-semibold">{s.username || 'N/A'}</strong></span>
+                          <span className="text-slate-300">•</span>
+                          <span className="text-[10px] text-slate-400">Pass: <strong className="text-slate-600 font-semibold">{s.password || 'N/A'}</strong></span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={handleToggleActive}
+                          className={`px-2 py-1 rounded-lg font-bold text-[10px] uppercase border transition-colors ${
+                            isActive 
+                              ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' 
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                          }`}
+                        >
+                          {isActive ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (isEditingPassword) {
+                              setEditingStoreId(null);
+                            } else {
+                              setEditingStoreId(s.id);
+                              setNewStorePassword(s.password || '');
+                            }
+                          }}
+                          className="px-2 py-1 bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold text-[10px] uppercase"
+                        >
+                          Password
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
+                      <span className={`font-bold text-[10px] uppercase ${isActive ? 'text-emerald-700' : 'text-red-700'}`}>
+                        {isActive ? 'Pharmacy Store Active' : 'DEACTIVATED BY ADMIN'}
+                      </span>
+                    </div>
+
+                    {isEditingPassword && (
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2 mt-1">
+                        <div className="flex-1">
+                          <label className="block text-[10px] font-bold text-slate-500 mb-0.5">New Password</label>
+                          <input
+                            type="text"
+                            value={newStorePassword}
+                            onChange={e => setNewStorePassword(e.target.value)}
+                            placeholder="Store password"
+                            className="w-full p-2 bg-white rounded-lg border border-slate-300 font-bold"
+                          />
+                        </div>
+                        <div className="flex items-end gap-1 mt-4">
+                          <button
+                            onClick={handleSavePassword}
+                            className="px-3 py-2 bg-amber-600 text-white hover:bg-amber-700 font-bold rounded-lg text-[10px] uppercase"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingStoreId(null)}
+                            className="px-2 py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded-lg text-[10px] uppercase text-slate-700"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

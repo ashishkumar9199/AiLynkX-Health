@@ -16,7 +16,10 @@ export const initialDoctors: Doctor[] = [
     hospital: 'St. Jude Heart Institute & Clinic',
     address: '450 Medical Arts Plaza, Suite 300',
     bio: 'Senior consultant cardiologist specializing in preventative cardiology, hypertension management, and non-invasive cardiac imaging.',
-    languages: ['English', 'Spanish']
+    languages: ['English', 'Spanish'],
+    username: 'sarah123',
+    password: 'password123',
+    isActive: true
   },
   {
     id: 'doc-2',
@@ -33,7 +36,10 @@ export const initialDoctors: Doctor[] = [
     hospital: 'Metro Care General Hospital',
     address: '102 Health Avenue, Block B',
     bio: 'Dedicated physician treating metabolic disorders, type 2 diabetes, thyroid conditions, and chronic adult illnesses.',
-    languages: ['English', 'Hindi']
+    languages: ['English', 'Hindi'],
+    username: 'rajesh123',
+    password: 'password123',
+    isActive: true
   },
   {
     id: 'doc-3',
@@ -50,7 +56,10 @@ export const initialDoctors: Doctor[] = [
     hospital: 'DermaClair Skin & Laser Center',
     address: '88 Beauty Boulevard, 2nd Floor',
     bio: 'Expert in clinical dermatology, acne treatments, eczema, psoriasis, and digital dermoscopy via telehealth.',
-    languages: ['English', 'French', 'Russian']
+    languages: ['English', 'French', 'Russian'],
+    username: 'elena123',
+    password: 'password123',
+    isActive: true
   },
   {
     id: 'doc-4',
@@ -67,7 +76,10 @@ export const initialDoctors: Doctor[] = [
     hospital: 'OrthoSpine Joint & Bone Clinic',
     address: '22 Sport Science Way',
     bio: 'Specialist in joint pain, sports injuries, fracture recovery, and posture rehabilitation.',
-    languages: ['English', 'German']
+    languages: ['English', 'German'],
+    username: 'marcus123',
+    password: 'password123',
+    isActive: true
   },
   {
     id: 'doc-5',
@@ -84,7 +96,10 @@ export const initialDoctors: Doctor[] = [
     hospital: 'Little Angels Children Care',
     address: '15 Kid Care Drive',
     bio: 'Compassionate pediatric healthcare focusing on infant growth milestones, childhood immunizations, respiratory allergies, and nutrition.',
-    languages: ['English', 'Hindi', 'Gujarati']
+    languages: ['English', 'Hindi', 'Gujarati'],
+    username: 'priya123',
+    password: 'password123',
+    isActive: true
   }
 ];
 

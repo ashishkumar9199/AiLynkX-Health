@@ -18,6 +18,9 @@ export interface Doctor {
   address: string;
   bio: string;
   languages: string[];
+  username?: string;
+  password?: string;
+  isActive?: boolean;
 }
 
 export interface UploadedMedicalDoc {
@@ -82,6 +85,9 @@ export interface PharmacyStore {
   deliveryTime: string;
   image: string;
   isPartnerStore: boolean;
+  username?: string;
+  password?: string;
+  isActive?: boolean;
 }
 
 export interface MedicineItem {
