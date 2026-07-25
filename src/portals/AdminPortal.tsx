@@ -14,7 +14,13 @@ import {
   CheckCircle2, 
   AlertCircle,
   Building2,
-  Video
+  Video,
+  Lock,
+  User,
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  LogOut
 } from 'lucide-react';
 
 export const AdminPortal: React.FC = () => {
@@ -37,6 +43,42 @@ export const AdminPortal: React.FC = () => {
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'doctors' | 'stores' | 'appointments' | 'samples' | 'orders'>('doctors');
+
+  // Admin Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem('is_admin_logged_in') === 'true';
+  });
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+    setIsLoggingIn(true);
+
+    // Simulate small secure delay for visual feedback
+    setTimeout(() => {
+      if (adminUsername === 'suailynkxadmin25' && adminPassword === 'Shubham@#@#9199@#@#') {
+        setIsAuthenticated(true);
+        localStorage.setItem('is_admin_logged_in', 'true');
+        setAdminUsername('');
+        setAdminPassword('');
+      } else {
+        setLoginError('Invalid username or password. Please try again.');
+      }
+      setIsLoggingIn(false);
+    }, 600);
+  };
+
+  const handleAdminLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('is_admin_logged_in');
+    window.location.hash = '';
+    setPortal('landing');
+  };
 
   // Doctor Form State
   const [docName, setDocName] = useState('');
@@ -141,11 +183,120 @@ export const AdminPortal: React.FC = () => {
     alert("Medicine added to store catalogue!");
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-md mx-auto my-12 bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-300">
+        <div className="bg-gradient-to-br from-red-700 via-red-800 to-blue-950 text-white p-8 text-center relative">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/20 rounded-full blur-xl pointer-events-none"></div>
+          <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center mx-auto mb-4 border border-white/20 shadow-inner">
+            <Lock className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-xl font-black tracking-tight text-white uppercase">
+            AiLynk<span className="text-red-400 font-serif italic text-2xl">X</span> Health
+          </h2>
+          <p className="text-xs text-red-100/80 uppercase tracking-widest font-bold mt-1">
+            Secure Admin Gateway
+          </p>
+        </div>
+
+        <form onSubmit={handleAdminLogin} className="p-8 space-y-6">
+          {loginError && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-600 font-bold flex items-start gap-2.5 animate-pulse">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{loginError}</span>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-500">
+                Admin Username
+              </label>
+              <div className="relative">
+                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                <input
+                  type="text"
+                  required
+                  id="admin-username-input"
+                  value={adminUsername}
+                  onChange={e => setAdminUsername(e.target.value)}
+                  placeholder="Enter username"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-800 focus:bg-white focus:ring-2 focus:ring-red-600/20 focus:border-red-600 transition-all font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-500">
+                Admin Password
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  id="admin-password-input"
+                  value={adminPassword}
+                  onChange={e => setAdminPassword(e.target.value)}
+                  placeholder="Enter password"
+                  className="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-800 focus:bg-white focus:ring-2 focus:ring-red-600/20 focus:border-red-600 transition-all font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3.5 p-0.5 text-slate-400 hover:text-slate-600 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <button
+              type="submit"
+              disabled={isLoggingIn}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3.5 rounded-2xl shadow-lg hover:shadow-xl transition-all disabled:opacity-70 text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isLoggingIn ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                  <span>Verifying...</span>
+                </span>
+              ) : (
+                <>
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Authenticate Access</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                window.location.hash = '';
+                setPortal('landing');
+              }}
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-2xl transition-all text-xs flex items-center justify-center gap-1.5 focus:outline-none"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Cancel & Return Home</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 pb-16">
       
       {/* Admin Banner */}
-      <div className="bg-gradient-to-r from-red-700 via-red-800 to-blue-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border border-red-600">
+      <div className="bg-gradient-to-r from-red-700 via-red-800 to-blue-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border border-red-600 animate-in fade-in duration-300">
         <div>
           <span className="bg-white text-red-700 text-[10px] font-black uppercase px-2.5 py-1 rounded-full tracking-wider mb-2 inline-block">
             {t('adminPanel')}
@@ -158,12 +309,24 @@ export const AdminPortal: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setPortal('landing')}
-          className="bg-white text-red-900 hover:bg-red-50 font-extrabold px-5 py-3 rounded-2xl text-xs shadow-md transition-all shrink-0"
-        >
-          View Live Landing Page →
-        </button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 w-full sm:w-auto">
+          <button
+            onClick={() => {
+              window.location.hash = '';
+              setPortal('landing');
+            }}
+            className="bg-white text-red-900 hover:bg-red-50 font-extrabold px-5 py-3 rounded-2xl text-xs shadow-md transition-all text-center cursor-pointer"
+          >
+            View Live Landing Page →
+          </button>
+          <button
+            onClick={handleAdminLogout}
+            className="bg-red-600 hover:bg-red-500 text-white font-extrabold px-5 py-3 rounded-2xl text-xs shadow-md transition-all flex items-center justify-center gap-1.5 border border-red-500 cursor-pointer"
+          >
+            <LogOut className="w-4 h-4 text-white" />
+            <span>Secure Logout</span>
+          </button>
+        </div>
       </div>
 
       {/* Admin Tabs */}

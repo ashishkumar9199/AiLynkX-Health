@@ -51,12 +51,9 @@ export const LandingPortal: React.FC = () => {
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-12 space-y-6">
             
-            <div className="inline-flex items-center gap-2 bg-white/10 text-white border border-white/20 px-3.5 py-1.5 rounded-full text-xs font-bold shadow-xs">
-              <Activity className="w-4 h-4 text-red-400" />
-              Integrated Telehealth & Diagnostic Network
-            </div>
+
 
             <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
               {t('heroTitle')}
@@ -109,36 +106,6 @@ export const LandingPortal: React.FC = () => {
               </div>
             </div>
 
-          </div>
-
-          {/* Right Hero Visual Card */}
-          <div className="lg:col-span-5 flex justify-center">
-            <div className="w-full max-w-sm bg-white/10 backdrop-blur-md p-6 rounded-3xl border border-white/20 shadow-2xl space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-red-600 text-white flex items-center justify-center font-bold">
-                  <HeartPulse className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-sm text-white">Medicare Care Pass</h3>
-                  <p className="text-[11px] text-blue-200">Instant Access to All 5 Portals</p>
-                </div>
-              </div>
-
-              <div className="space-y-2.5 text-xs text-blue-100 font-medium pt-2">
-                <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Doctors added by Admin appear live below</span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Upload Prescription & Test PDFs for Video Calls</span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Order medicines directly from admin stores</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>

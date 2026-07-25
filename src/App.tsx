@@ -14,7 +14,33 @@ import { PharmacyPortal } from './portals/PharmacyPortal';
 import { AdminPortal } from './portals/AdminPortal';
 
 function MainAppContent() {
-  const { portal } = useApp();
+  const { portal, setPortal } = useApp();
+
+  React.useEffect(() => {
+    const checkSecretRoute = () => {
+      const hash = window.location.hash.toLowerCase();
+      const path = window.location.pathname.toLowerCase();
+      if (
+        hash === '#admin-gate-suk2h2ai' || 
+        hash === '#/admin-gate-suk2h2ai' || 
+        path === '/admin-gate-suk2h2ai'
+      ) {
+        setPortal('admin');
+      }
+    };
+
+    // Run immediately on load
+    checkSecretRoute();
+
+    // Listen for hash changes & browser navigation history
+    window.addEventListener('hashchange', checkSecretRoute);
+    window.addEventListener('popstate', checkSecretRoute);
+
+    return () => {
+      window.removeEventListener('hashchange', checkSecretRoute);
+      window.removeEventListener('popstate', checkSecretRoute);
+    };
+  }, [setPortal]);
 
   const renderActivePortal = () => {
     switch (portal) {

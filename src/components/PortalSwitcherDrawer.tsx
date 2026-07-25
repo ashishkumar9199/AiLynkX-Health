@@ -58,14 +58,6 @@ export const PortalSwitcherDrawer: React.FC = () => {
       description: 'Browse stores added by admin, search medicines, upload RX & order for delivery.',
       icon: <Pill className="w-5 h-5 text-amber-600" />,
       highlightColor: 'hover:border-amber-500 hover:bg-amber-50/50'
-    },
-    {
-      id: 'admin',
-      nameKey: 'portalAdmin',
-      description: 'Add doctor details (published to landing page), manage pharmacy stores, and track orders.',
-      icon: <ShieldCheck className="w-5 h-5 text-red-600" />,
-      badge: 'Admin Access',
-      highlightColor: 'hover:border-red-500 hover:bg-red-50/50'
     }
   ];
 
