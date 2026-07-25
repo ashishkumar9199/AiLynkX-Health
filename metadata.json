@@ -1,0 +1,6 @@
+{
+  "name": "Medicare Plus - Telehealth & Clinic Platform",
+  "description": "Full-featured healthcare app with video appointments, prescription AI analyzer, home sample collection, pharmacy ordering, doctor and admin portals, multi-language support, and notifications.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
