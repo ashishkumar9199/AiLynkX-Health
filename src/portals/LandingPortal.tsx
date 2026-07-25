@@ -4,6 +4,7 @@ import { AIPrescriptionAnalyzer } from '../components/AIPrescriptionAnalyzer';
 import { DoctorCard } from '../components/DoctorCard';
 import { AppointmentBookingModal } from '../components/AppointmentBookingModal';
 import { HomeSampleCollectionModal } from '../components/HomeSampleCollectionModal';
+import { Chatbot } from '../components/Chatbot';
 import { Doctor } from '../types';
 import { 
   Stethoscope, 
@@ -311,6 +312,9 @@ export const LandingPortal: React.FC = () => {
           onClose={() => setIsSampleModalOpen(false)}
         />
       )}
+
+      {/* Floating Medical Chatbot */}
+      <Chatbot />
 
     </div>
   );
