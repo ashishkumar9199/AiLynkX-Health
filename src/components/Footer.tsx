@@ -84,11 +84,6 @@ export const Footer: React.FC = () => {
                 • Pharmacy Store & Orders
               </button>
             </li>
-            <li>
-              <button onClick={() => setPortal('admin')} className="hover:text-red-400 transition-colors">
-                • Admin Control Hub
-              </button>
-            </li>
           </ul>
         </div>
 
