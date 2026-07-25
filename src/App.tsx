@@ -26,7 +26,16 @@ function MainAppContent() {
     .replace(/^#\/?/, '')
     .replace(/^\//, '');
 
-  const isSecretMatch = location.pathname.toLowerCase().replace(/^\//, '') === secretRoute;
+  const cleanPath = location.pathname.toLowerCase().replace(/^\//, '').replace(/\/$/, '');
+  const cleanHash = location.hash.toLowerCase().replace(/^#\/?/, '').replace(/\/$/, '');
+  const searchParams = new URLSearchParams(location.search.toLowerCase());
+  const hasSecretInSearch = Array.from(searchParams.values()).some(val => val === secretRoute) || location.search.toLowerCase().includes(secretRoute);
+
+  const isSecretMatch = 
+    cleanPath === secretRoute || 
+    cleanHash === secretRoute || 
+    hasSecretInSearch ||
+    cleanPath === 'admin';
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col antialiased selection:bg-blue-600 selection:text-white">
@@ -43,10 +52,8 @@ function MainAppContent() {
           <Route path="/pharmacy" element={<PharmacyPortal />} />
           <Route path="/admin" element={<AdminPortal />} />
           
-          {/* Secret dynamic gateway to Admin portal */}
-          {isSecretMatch && (
-            <Route path={`/${secretRoute}`} element={<AdminPortal />} />
-          )}
+          {/* Secret dynamic gateway to Admin portal - rendered unconditionally for robust router matching */}
+          <Route path={`/${secretRoute}`} element={<AdminPortal />} />
 
           {/* Catch-all fallback redirects back to the main medical landing page */}
           <Route path="*" element={<Navigate to="/" replace />} />

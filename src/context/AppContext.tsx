@@ -155,21 +155,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Synchronize URL path with local portal state for full multi-page fidelity
   useEffect(() => {
     const rawStoredPath = localStorage.getItem('admin_secret_path') || 'admin-gate-suk2h2ai';
-    const cleanSecret = rawStoredPath.trim().toLowerCase().replace(/^#\/?/, '').replace(/^\//, '');
-    const currentPath = location.pathname.toLowerCase().replace(/^\//, '');
+    const cleanSecret = rawStoredPath.trim().toLowerCase().replace(/^#\/?/, '').replace(/^\//, '').replace(/\/$/, '');
+    
+    const cleanPath = location.pathname.toLowerCase().replace(/^\//, '').replace(/\/$/, '');
+    const cleanHash = location.hash.toLowerCase().replace(/^#\/?/, '').replace(/\/$/, '');
+    const searchParams = new URLSearchParams(location.search.toLowerCase());
+    const hasSecretInSearch = Array.from(searchParams.values()).some(val => val === cleanSecret) || location.search.toLowerCase().includes(cleanSecret);
 
-    if (currentPath === cleanSecret || currentPath === 'admin') {
+    if (cleanPath === cleanSecret || cleanHash === cleanSecret || hasSecretInSearch || cleanPath === 'admin') {
       setPortalState('admin');
-    } else if (currentPath === 'patient') {
+      if (cleanPath !== cleanSecret && cleanPath !== 'admin') {
+        navigate(`/${cleanSecret}`, { replace: true });
+      }
+    } else if (cleanPath === 'patient') {
       setPortalState('patient');
-    } else if (currentPath === 'doctor') {
+    } else if (cleanPath === 'doctor') {
       setPortalState('doctor');
-    } else if (currentPath === 'pharmacy') {
+    } else if (cleanPath === 'pharmacy') {
       setPortalState('pharmacy');
-    } else if (currentPath === '' || currentPath === 'landing') {
+    } else if (cleanPath === '' || cleanPath === 'landing') {
       setPortalState('landing');
     }
-  }, [location.pathname]);
+  }, [location.pathname, location.hash, location.search]);
 
   // Translation function
   const t = (key: string): string => {
