@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
+import nodemailer from 'nodemailer';
 
 dotenv.config();
 
@@ -128,6 +129,100 @@ Format your output STRICTLY as raw valid JSON without markdown code block format
       res.status(500).json({
         error: 'Failed to analyze prescription',
         details: error?.message || 'Server error during analysis'
+      });
+    }
+  });
+
+  // Feedback & Suggestions Endpoint
+  app.post('/api/feedback', async (req, res) => {
+    try {
+      const { name, email, category, message, rating } = req.body;
+
+      if (!name || !email || !message) {
+        return res.status(400).json({ error: 'Name, email, and message are required.' });
+      }
+
+      console.log('--- NEW FEEDBACK RECEIVED ---');
+      console.log(`From: ${name} (${email})`);
+      console.log(`Category: ${category || 'General'}`);
+      console.log(`Rating: ${rating ? `${rating}/5 stars` : 'N/A'}`);
+      console.log(`Message: ${message}`);
+      console.log('-----------------------------');
+
+      const recipientEmail = 'ailynkhealth@gmail.com';
+      let emailSentReal = false;
+
+      // Check if SMTP details are configured
+      const smtpHost = process.env.SMTP_HOST;
+      const smtpPort = process.env.SMTP_PORT || '587';
+      const smtpUser = process.env.SMTP_USER;
+      const smtpPass = process.env.SMTP_PASS;
+
+      if (smtpHost && smtpUser && smtpPass) {
+        try {
+          const transporter = nodemailer.createTransport({
+            host: smtpHost,
+            port: parseInt(smtpPort),
+            secure: smtpPort === '465',
+            auth: {
+              user: smtpUser,
+              pass: smtpPass,
+            },
+          });
+
+          const mailOptions = {
+            from: `"${name}" <${smtpUser}>`,
+            replyTo: email,
+            to: recipientEmail,
+            subject: `[AiLynkX] New ${category || 'Feedback'} from ${name}`,
+            text: `
+Hello Admin,
+
+You have received a new ${category || 'feedback submission'} from the AiLynkX portal.
+
+Sender Details:
+- Name: ${name}
+- Email: ${email}
+- Rating: ${rating ? `${rating}/5` : 'Not provided'}
+- Category: ${category || 'General'}
+
+Message:
+"${message}"
+
+---
+Sent automatically from the AiLynkX Website Feedback Engine.
+`,
+          };
+
+          await transporter.sendMail(mailOptions);
+          emailSentReal = true;
+          console.log(`Successfully dispatched real SMTP email to ${recipientEmail}`);
+        } catch (mailErr) {
+          console.error('SMTP sending failed, falling back to simulated successful delivery log:', mailErr);
+        }
+      } else {
+        console.log('SMTP credentials not configured. Logging submission to server logs as simulated email to standard recipient: ' + recipientEmail);
+      }
+
+      return res.json({
+        status: 'success',
+        message: 'Feedback received successfully!',
+        emailSent: emailSentReal,
+        recipient: recipientEmail,
+        loggedDetails: {
+          name,
+          email,
+          category,
+          rating,
+          message
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Error handling feedback:', error);
+      res.status(500).json({
+        error: 'Failed to record feedback',
+        details: error?.message || 'Server error'
       });
     }
   });

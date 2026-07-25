@@ -5,6 +5,7 @@ import { PortalSwitcherDrawer } from './components/PortalSwitcherDrawer';
 import { NotificationCenter } from './components/NotificationCenter';
 import { SosQuickDialModal } from './components/SosQuickDialModal';
 import { Footer } from './components/Footer';
+import { FeedbackToggle } from './components/FeedbackToggle';
 
 // Portals
 import { LandingPortal } from './portals/LandingPortal';
@@ -75,6 +76,9 @@ function MainAppContent() {
       <PortalSwitcherDrawer />
       <NotificationCenter />
       <SosQuickDialModal />
+
+      {/* Floating Feedback & Suggestions Panel */}
+      <FeedbackToggle />
 
       {/* Footer */}
       <Footer />
