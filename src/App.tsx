@@ -1,4 +1,5 @@
 import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import { Header } from './components/Header';
 import { PortalSwitcherDrawer } from './components/PortalSwitcherDrawer';
@@ -15,52 +16,17 @@ import { PharmacyPortal } from './portals/PharmacyPortal';
 import { AdminPortal } from './portals/AdminPortal';
 
 function MainAppContent() {
-  const { portal, setPortal } = useApp();
+  const { setPortal } = useApp();
+  const location = useLocation();
 
-  React.useEffect(() => {
-    const checkSecretRoute = () => {
-      const rawStoredPath = localStorage.getItem('admin_secret_path') || 'admin-gate-suk2h2ai';
-      const cleanSecret = rawStoredPath.trim().toLowerCase().replace(/^#\/?/, '').replace(/^\//, '');
-      const hash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
-      const path = window.location.pathname.toLowerCase().replace(/^\//, '');
+  // Retrieve the secret path (useful if custom configured by admin)
+  const secretRoute = (localStorage.getItem('admin_secret_path') || 'admin-gate-suk2h2ai')
+    .trim()
+    .toLowerCase()
+    .replace(/^#\/?/, '')
+    .replace(/^\//, '');
 
-      if (
-        hash === cleanSecret || 
-        path === cleanSecret
-      ) {
-        setPortal('admin');
-      }
-    };
-
-    // Run immediately on load
-    checkSecretRoute();
-
-    // Listen for hash changes & browser navigation history
-    window.addEventListener('hashchange', checkSecretRoute);
-    window.addEventListener('popstate', checkSecretRoute);
-
-    return () => {
-      window.removeEventListener('hashchange', checkSecretRoute);
-      window.removeEventListener('popstate', checkSecretRoute);
-    };
-  }, [setPortal]);
-
-  const renderActivePortal = () => {
-    switch (portal) {
-      case 'landing':
-        return <LandingPortal />;
-      case 'patient':
-        return <PatientPortal />;
-      case 'doctor':
-        return <DoctorPortal />;
-      case 'pharmacy':
-        return <PharmacyPortal />;
-      case 'admin':
-        return <AdminPortal />;
-      default:
-        return <LandingPortal />;
-    }
-  };
+  const isSecretMatch = location.pathname.toLowerCase().replace(/^\//, '') === secretRoute;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col antialiased selection:bg-blue-600 selection:text-white">
@@ -69,7 +35,22 @@ function MainAppContent() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {renderActivePortal()}
+        <Routes>
+          <Route path="/" element={<LandingPortal />} />
+          <Route path="/landing" element={<LandingPortal />} />
+          <Route path="/patient" element={<PatientPortal />} />
+          <Route path="/doctor" element={<DoctorPortal />} />
+          <Route path="/pharmacy" element={<PharmacyPortal />} />
+          <Route path="/admin" element={<AdminPortal />} />
+          
+          {/* Secret dynamic gateway to Admin portal */}
+          {isSecretMatch && (
+            <Route path={`/${secretRoute}`} element={<AdminPortal />} />
+          )}
+
+          {/* Catch-all fallback redirects back to the main medical landing page */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
 
       {/* Drawers & Modals */}
@@ -88,8 +69,10 @@ function MainAppContent() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <MainAppContent />
-    </AppProvider>
+    <BrowserRouter>
+      <AppProvider>
+        <MainAppContent />
+      </AppProvider>
+    </BrowserRouter>
   );
 }

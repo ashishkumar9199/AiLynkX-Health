@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   PortalType,
   Language,
@@ -88,6 +89,9 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [portal, setPortalState] = useState<PortalType>('landing');
   const [language, setLanguageState] = useState<Language>('en');
 
@@ -117,16 +121,46 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [activeVideoCall, setActiveVideoCall] = useState<Appointment | null>(null);
   const [activeBookingDoctor, setActiveBookingDoctor] = useState<Doctor | null>(null);
 
+  // Synchronize URL path with local portal state for full multi-page fidelity
+  useEffect(() => {
+    const rawStoredPath = localStorage.getItem('admin_secret_path') || 'admin-gate-suk2h2ai';
+    const cleanSecret = rawStoredPath.trim().toLowerCase().replace(/^#\/?/, '').replace(/^\//, '');
+    const currentPath = location.pathname.toLowerCase().replace(/^\//, '');
+
+    if (currentPath === cleanSecret || currentPath === 'admin') {
+      setPortalState('admin');
+    } else if (currentPath === 'patient') {
+      setPortalState('patient');
+    } else if (currentPath === 'doctor') {
+      setPortalState('doctor');
+    } else if (currentPath === 'pharmacy') {
+      setPortalState('pharmacy');
+    } else if (currentPath === '' || currentPath === 'landing') {
+      setPortalState('landing');
+    }
+  }, [location.pathname]);
+
   // Translation function
   const t = (key: string): string => {
     const langObj = translations[language] || translations.en;
     return langObj[key] || translations.en[key] || key;
   };
 
-  // Portal switcher with scroll reset
+  // Portal switcher with scroll reset and router navigation
   const setPortal = (p: PortalType) => {
-    setPortalState(p);
     setIsPortalDrawerOpen(false);
+    
+    let targetPath = '/';
+    if (p === 'patient') targetPath = '/patient';
+    else if (p === 'doctor') targetPath = '/doctor';
+    else if (p === 'pharmacy') targetPath = '/pharmacy';
+    else if (p === 'admin') {
+      const rawStoredPath = localStorage.getItem('admin_secret_path') || 'admin-gate-suk2h2ai';
+      const cleanSecret = rawStoredPath.trim().toLowerCase().replace(/^#\/?/, '').replace(/^\//, '');
+      targetPath = `/${cleanSecret}`;
+    }
+    
+    navigate(targetPath);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
