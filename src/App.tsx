@@ -18,12 +18,14 @@ function MainAppContent() {
 
   React.useEffect(() => {
     const checkSecretRoute = () => {
-      const hash = window.location.hash.toLowerCase();
-      const path = window.location.pathname.toLowerCase();
+      const rawStoredPath = localStorage.getItem('admin_secret_path') || 'admin-gate-suk2h2ai';
+      const cleanSecret = rawStoredPath.trim().toLowerCase().replace(/^#\/?/, '').replace(/^\//, '');
+      const hash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
+      const path = window.location.pathname.toLowerCase().replace(/^\//, '');
+
       if (
-        hash === '#admin-gate-suk2h2ai' || 
-        hash === '#/admin-gate-suk2h2ai' || 
-        path === '/admin-gate-suk2h2ai'
+        hash === cleanSecret || 
+        path === cleanSecret
       ) {
         setPortal('admin');
       }

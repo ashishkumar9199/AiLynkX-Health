@@ -20,7 +20,9 @@ import {
   ArrowLeft,
   Eye,
   EyeOff,
-  LogOut
+  LogOut,
+  Settings,
+  Key
 } from 'lucide-react';
 
 export const AdminPortal: React.FC = () => {
@@ -42,7 +44,7 @@ export const AdminPortal: React.FC = () => {
     setPortal
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'doctors' | 'stores' | 'appointments' | 'samples' | 'orders'>('doctors');
+  const [activeTab, setActiveTab] = useState<'doctors' | 'stores' | 'appointments' | 'samples' | 'orders' | 'security'>('doctors');
 
   // Admin Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -54,14 +56,30 @@ export const AdminPortal: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
+  // Security Credentials Modification State
+  const [configUsername, setConfigUsername] = useState(() => {
+    return localStorage.getItem('admin_username') || 'suailynkxadmin25';
+  });
+  const [configPassword, setConfigPassword] = useState(() => {
+    return localStorage.getItem('admin_password') || 'Shubham@#@#9199@#@#';
+  });
+  const [configSecretPath, setConfigSecretPath] = useState(() => {
+    return localStorage.getItem('admin_secret_path') || 'admin-gate-suk2h2ai';
+  });
+  const [showConfigPassword, setShowConfigPassword] = useState(false);
+  const [securitySuccess, setSecuritySuccess] = useState(false);
+
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
     setIsLoggingIn(true);
 
+    const targetUsername = localStorage.getItem('admin_username') || 'suailynkxadmin25';
+    const targetPassword = localStorage.getItem('admin_password') || 'Shubham@#@#9199@#@#';
+
     // Simulate small secure delay for visual feedback
     setTimeout(() => {
-      if (adminUsername === 'suailynkxadmin25' && adminPassword === 'Shubham@#@#9199@#@#') {
+      if (adminUsername === targetUsername && adminPassword === targetPassword) {
         setIsAuthenticated(true);
         localStorage.setItem('is_admin_logged_in', 'true');
         setAdminUsername('');
@@ -373,6 +391,17 @@ export const AdminPortal: React.FC = () => {
         >
           <TestTube2 className="w-4 h-4" />
           Home Lab Requests ({sampleRequests.length})
+        </button>
+
+        <button
+          id="admin-tab-security"
+          onClick={() => setActiveTab('security')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap ${
+            activeTab === 'security' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Settings className="w-4 h-4" />
+          Access & Security Settings
         </button>
       </div>
 
@@ -756,7 +785,7 @@ export const AdminPortal: React.FC = () => {
 
                   <button
                     onClick={() => updateSampleStatus(s.id, 'sample-collected', 'Rahul S.', '+1-800-LAB-TECH')}
-                    className="px-3 py-1.5 bg-emerald-600 text-white font-bold rounded-lg text-[11px]"
+                    className="px-3 py-1.5 bg-emerald-600 text-white font-bold rounded-lg text-[11px] mt-2 block"
                   >
                     Assign Technician & Mark Collected
                   </button>
@@ -764,6 +793,136 @@ export const AdminPortal: React.FC = () => {
               ))
             )}
           </div>
+        </div>
+      )}
+
+      {/* Tab 5: Access & Security Settings */}
+      {activeTab === 'security' && (
+        <div className="max-w-2xl bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6 animate-in fade-in duration-300">
+          <div className="flex items-start gap-4 pb-4 border-b border-slate-100">
+            <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center shrink-0">
+              <Key className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="font-extrabold text-slate-900 text-lg">Access & Portal Routing Controls</h2>
+              <p className="text-slate-500 text-xs mt-0.5">
+                Configure your administrator login username, credentials, and the custom url string that activates this admin interface.
+              </p>
+            </div>
+          </div>
+
+          {securitySuccess && (
+            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-2xl flex items-start gap-3 animate-in zoom-in-95 duration-200">
+              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+              <div>
+                <p>Security configurations updated successfully!</p>
+                <p className="font-medium text-emerald-700/80 mt-0.5">
+                  New Admin credentials are now active. The portal can be unlocked via the secret hash: <span className="font-mono bg-emerald-100 px-1 py-0.5 rounded text-emerald-950 font-bold">#{configSecretPath}</span>
+                </p>
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            setSecuritySuccess(false);
+            
+            localStorage.setItem('admin_username', configUsername.trim());
+            localStorage.setItem('admin_password', configPassword);
+            localStorage.setItem('admin_secret_path', configSecretPath.trim());
+            
+            setSecuritySuccess(true);
+            setTimeout(() => {
+              setSecuritySuccess(false);
+            }, 5000);
+          }} className="space-y-5 text-xs">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block text-slate-700 font-bold">
+                  Admin Username
+                </label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    value={configUsername}
+                    onChange={e => setConfigUsername(e.target.value)}
+                    placeholder="e.g. suailynkxadmin25"
+                    className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-red-600/10 focus:border-red-600 transition-all font-medium text-slate-800"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-slate-700 font-bold">
+                  Admin Password
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
+                  <input
+                    type={showConfigPassword ? "text" : "password"}
+                    required
+                    value={configPassword}
+                    onChange={e => setConfigPassword(e.target.value)}
+                    placeholder="Enter new password"
+                    className="w-full pl-9 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-red-600/10 focus:border-red-600 transition-all font-mono text-slate-800"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfigPassword(!showConfigPassword)}
+                    className="absolute right-3 top-3.5 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showConfigPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-slate-700 font-bold">
+                Custom Secret Portal Path
+              </label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-3 font-mono text-slate-400 font-bold">#/</span>
+                <input
+                  type="text"
+                  required
+                  value={configSecretPath}
+                  onChange={e => setConfigSecretPath(e.target.value)}
+                  placeholder="admin-gate-suk2h2ai"
+                  className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-red-600/10 focus:border-red-600 transition-all font-mono font-bold text-red-700"
+                />
+              </div>
+              <p className="text-[10px] text-slate-400 leading-relaxed pt-0.5">
+                Type this exact value in your browser hash path to reveal the Admin Portal when logged out. For example, navigating to <code className="font-bold text-slate-600 bg-slate-100 px-1 py-0.5 rounded">#/your-secret-path</code> or <code className="font-bold text-slate-600 bg-slate-100 px-1 py-0.5 rounded">/your-secret-path</code> will immediately prompt authentication.
+              </p>
+            </div>
+
+            <div className="p-4 bg-red-50/50 border border-red-100 rounded-2xl text-[11px] text-red-800 space-y-1">
+              <span className="font-extrabold uppercase flex items-center gap-1.5 text-red-700">
+                <AlertCircle className="w-3.5 h-3.5" />
+                Critical Security Reminder
+              </span>
+              <p className="leading-relaxed font-medium">
+                Once saved, current active and future login sessions will validate against these updated records. Please store these credentials and secret portal path safely.
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="submit"
+                className="bg-red-600 hover:bg-red-700 text-white font-extrabold px-6 py-3.5 rounded-2xl transition-all shadow-md hover:shadow-lg text-xs uppercase tracking-wider cursor-pointer"
+              >
+                Save Security Settings
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
