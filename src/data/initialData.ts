@@ -19,7 +19,8 @@ export const initialDoctors: Doctor[] = [
     languages: ['English', 'Spanish'],
     username: 'sarah123',
     password: 'password123',
-    isActive: true
+    isActive: true,
+    approvalStatus: 'approved'
   },
   {
     id: 'doc-2',
@@ -39,7 +40,8 @@ export const initialDoctors: Doctor[] = [
     languages: ['English', 'Hindi'],
     username: 'rajesh123',
     password: 'password123',
-    isActive: true
+    isActive: true,
+    approvalStatus: 'approved'
   },
   {
     id: 'doc-3',
@@ -59,7 +61,8 @@ export const initialDoctors: Doctor[] = [
     languages: ['English', 'French', 'Russian'],
     username: 'elena123',
     password: 'password123',
-    isActive: true
+    isActive: true,
+    approvalStatus: 'approved'
   },
   {
     id: 'doc-4',
@@ -79,7 +82,8 @@ export const initialDoctors: Doctor[] = [
     languages: ['English', 'German'],
     username: 'marcus123',
     password: 'password123',
-    isActive: true
+    isActive: true,
+    approvalStatus: 'approved'
   },
   {
     id: 'doc-5',
@@ -99,7 +103,8 @@ export const initialDoctors: Doctor[] = [
     languages: ['English', 'Hindi', 'Gujarati'],
     username: 'priya123',
     password: 'password123',
-    isActive: true
+    isActive: true,
+    approvalStatus: 'approved'
   }
 ];
 

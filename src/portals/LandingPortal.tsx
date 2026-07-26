@@ -32,8 +32,11 @@ export const LandingPortal: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSampleModalOpen, setIsSampleModalOpen] = useState(false);
 
-  // Filter Doctors (added by admin)
+  // Filter Doctors (added by admin and approved)
   const filteredDoctors = doctors.filter(doc => {
+    // Only approved doctors appear on the public panel
+    if (doc.approvalStatus !== 'approved') return false;
+
     const matchesSpecialty = selectedSpecialty === 'All' || doc.specialty === selectedSpecialty;
     const matchesMode = selectedMode === 'all' || doc.consultationModes.includes(selectedMode);
     const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -297,6 +300,45 @@ export const LandingPortal: React.FC = () => {
         >
           Apply for Home Collection
         </button>
+      </section>
+
+      {/* Medical Professional / Doctor Join Banner */}
+      <section className="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 text-white rounded-3xl p-8 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 border border-slate-700">
+        <div className="space-y-2 max-w-xl text-left">
+          <div className="inline-flex items-center gap-1.5 bg-slate-700 text-slate-100 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+            <Stethoscope className="w-3.5 h-3.5 text-emerald-400" />
+            Medical Professionals Wanted
+          </div>
+          <h3 className="text-2xl font-black text-white">
+            Are you a Registered Medical Doctor?
+          </h3>
+          <p className="text-slate-300 text-xs leading-relaxed">
+            Join our digital Telehealth Ecosystem. Register your specialist profile, manage consult queues, and host high-definition video consults. Your registration is secure and will go live once verified by our platform administrator.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-3 shrink-0">
+          <button
+            id="landing-doctor-signin-btn"
+            onClick={() => {
+              localStorage.setItem('doctor_portal_view_mode', 'signin');
+              setPortal('doctor');
+            }}
+            className="bg-white hover:bg-slate-100 text-slate-900 font-extrabold px-6 py-3 rounded-2xl shadow-lg transition-all text-sm border border-slate-200 cursor-pointer"
+          >
+            Doctor Login
+          </button>
+          <button
+            id="landing-doctor-signup-btn"
+            onClick={() => {
+              localStorage.setItem('doctor_portal_view_mode', 'signup');
+              setPortal('doctor');
+            }}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-6 py-3 rounded-2xl shadow-lg transition-all text-sm border border-emerald-500 cursor-pointer"
+          >
+            Apply to Join Panel
+          </button>
+        </div>
       </section>
 
       {/* Modals */}

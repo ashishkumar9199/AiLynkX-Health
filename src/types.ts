@@ -21,6 +21,7 @@ export interface Doctor {
   username?: string;
   password?: string;
   isActive?: boolean;
+  approvalStatus?: 'approved' | 'pending' | 'rejected';
 }
 
 export interface UploadedMedicalDoc {

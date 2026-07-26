@@ -22,7 +22,9 @@ import {
   EyeOff,
   LogOut,
   Settings,
-  Key
+  Key,
+  Clock,
+  X
 } from 'lucide-react';
 
 export const AdminPortal: React.FC = () => {
@@ -120,6 +122,7 @@ export const AdminPortal: React.FC = () => {
   // States for password editing in Admin list
   const [editingDocId, setEditingDocId] = useState<string | null>(null);
   const [newDocPassword, setNewDocPassword] = useState('');
+  const [docStatusTab, setDocStatusTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
 
   // Pharmacy Store Form State
   const [storeName, setStoreName] = useState('');
@@ -606,125 +609,251 @@ export const AdminPortal: React.FC = () => {
           </div>
 
           {/* Doctors List */}
-          <div className="lg:col-span-6 space-y-3">
-            <h2 className="font-extrabold text-slate-900 text-base">
-              Existing Doctors Directory ({doctors.length})
-            </h2>
+          <div className="lg:col-span-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2">
+              <h2 className="font-extrabold text-slate-900 text-base">
+                Practitioner Directory ({doctors.length})
+              </h2>
+              
+              {/* Approval status filter tabs */}
+              <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setDocStatusTab('pending')}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    docStatusTab === 'pending'
+                      ? 'bg-amber-500 text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Pending ({doctors.filter(d => d.approvalStatus === 'pending').length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDocStatusTab('approved')}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    docStatusTab === 'approved'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Approved ({doctors.filter(d => d.approvalStatus === 'approved' || !d.approvalStatus).length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDocStatusTab('rejected')}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    docStatusTab === 'rejected'
+                      ? 'bg-red-600 text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Rejected ({doctors.filter(d => d.approvalStatus === 'rejected').length})
+                </button>
+              </div>
+            </div>
 
             <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
-              {doctors.map(doc => {
-                const isActive = doc.isActive !== false; // defaults to true
-                const isEditingPassword = editingDocId === doc.id;
+              {(() => {
+                const filteredList = doctors.filter(doc => {
+                  if (docStatusTab === 'pending') return doc.approvalStatus === 'pending';
+                  if (docStatusTab === 'rejected') return doc.approvalStatus === 'rejected';
+                  return doc.approvalStatus === 'approved' || !doc.approvalStatus;
+                });
 
-                const handleToggleActive = () => {
-                  editDoctor({
-                    ...doc,
-                    isActive: !isActive
-                  });
-                };
+                if (filteredList.length === 0) {
+                  return (
+                    <div className="p-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-slate-400 font-medium text-xs">
+                      No medical practitioners found in this category.
+                    </div>
+                  );
+                }
 
-                const handleSavePassword = () => {
-                  if (!newDocPassword.trim()) return;
-                  editDoctor({
-                    ...doc,
-                    password: newDocPassword.trim()
-                  });
-                  setEditingDocId(null);
-                  setNewDocPassword('');
-                };
+                return filteredList.map(doc => {
+                  const isActive = doc.isActive !== false;
+                  const isEditingPassword = editingDocId === doc.id;
 
-                return (
-                  <div key={doc.id} className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3 text-xs">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <img src={doc.avatar} alt={doc.name} className="w-12 h-12 rounded-xl object-cover border border-slate-100" />
-                        <div>
-                          <h4 className="font-extrabold text-slate-900 text-sm">{doc.name}</h4>
-                          <p className="text-[11px] text-blue-700 font-semibold">{doc.specialty} • ${doc.fee}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] text-slate-400">User: <strong className="text-slate-600 font-semibold">{doc.username || 'N/A'}</strong></span>
-                            <span className="text-slate-300">•</span>
-                            <span className="text-[10px] text-slate-400">Pass: <strong className="text-slate-600 font-semibold">{doc.password || 'N/A'}</strong></span>
+                  const handleToggleActive = () => {
+                    editDoctor({
+                      ...doc,
+                      isActive: !isActive
+                    });
+                  };
+
+                  const handleSavePassword = () => {
+                    if (!newDocPassword.trim()) return;
+                    editDoctor({
+                      ...doc,
+                      password: newDocPassword.trim()
+                    });
+                    setEditingDocId(null);
+                    setNewDocPassword('');
+                  };
+
+                  const handleApprove = () => {
+                    editDoctor({
+                      ...doc,
+                      approvalStatus: 'approved'
+                    });
+                  };
+
+                  const handleReject = () => {
+                    editDoctor({
+                      ...doc,
+                      approvalStatus: 'rejected'
+                    });
+                  };
+
+                  return (
+                    <div key={doc.id} className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3 text-xs">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <img src={doc.avatar} alt={doc.name} className="w-12 h-12 rounded-xl object-cover border border-slate-100 mt-0.5 animate-in fade-in" />
+                          <div>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <h4 className="font-extrabold text-slate-900 text-sm">{doc.name}</h4>
+                              {doc.approvalStatus === 'pending' && (
+                                <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wider animate-pulse">Pending Approval</span>
+                              )}
+                              {doc.approvalStatus === 'rejected' && (
+                                <span className="bg-red-100 text-red-800 text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wider">Rejected</span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-blue-700 font-semibold">{doc.specialty} • ${doc.fee}</p>
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+                              <span className="text-[10px] text-slate-400">User: <strong className="text-slate-600 font-semibold">{doc.username || 'N/A'}</strong></span>
+                              <span className="text-slate-300">•</span>
+                              <span className="text-[10px] text-slate-400 font-medium">Experience: <strong className="text-slate-600 font-semibold">{doc.experienceYears} Years</strong></span>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={handleToggleActive}
-                          className={`px-2.5 py-1.5 rounded-xl font-bold text-[10px] uppercase transition-colors ${
-                            isActive 
-                              ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200' 
-                              : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
-                          }`}
-                          title={isActive ? 'Deactivate Doctor Portal' : 'Activate Doctor Portal'}
-                        >
-                          {isActive ? 'Deactivate' : 'Activate'}
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (isEditingPassword) {
-                              setEditingDocId(null);
-                            } else {
-                              setEditingDocId(doc.id);
-                              setNewDocPassword(doc.password || '');
-                            }
-                          }}
-                          className="px-2.5 py-1.5 bg-slate-50 text-slate-700 hover:bg-slate-100 rounded-xl font-bold border border-slate-200 text-[10px] uppercase"
-                          title="Change Doctor Password"
-                        >
-                          Password
-                        </button>
-                        <button
-                          onClick={() => deleteDoctor(doc.id)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
-                          title="Delete Doctor Profile"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Status Badge */}
-                    <div className="flex items-center gap-1.5">
-                      <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
-                      <span className={`font-bold text-[10px] uppercase ${isActive ? 'text-emerald-700' : 'text-red-700'}`}>
-                        {isActive ? 'Portal Active & Listings Open' : 'PORTAL DEACTIVATED PERMANENTLY'}
-                      </span>
-                    </div>
-
-                    {/* Password Edit Mode */}
-                    {isEditingPassword && (
-                      <div className="mt-2 p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2">
-                        <div className="flex-1">
-                          <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Set New Password</label>
-                          <input
-                            type="text"
-                            value={newDocPassword}
-                            onChange={e => setNewDocPassword(e.target.value)}
-                            placeholder="Enter new password"
-                            className="w-full p-2 bg-white rounded-lg border border-slate-300 font-bold"
-                          />
-                        </div>
-                        <div className="flex items-end gap-1 mt-4">
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {doc.approvalStatus === 'pending' ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={handleApprove}
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[10px] uppercase cursor-pointer shadow-xs"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleReject}
+                                className="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-xl font-bold text-[10px] uppercase cursor-pointer"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          ) : doc.approvalStatus === 'rejected' ? (
+                            <button
+                              type="button"
+                              onClick={handleApprove}
+                              className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-xl font-bold text-[10px] uppercase cursor-pointer"
+                            >
+                              Approve Profile
+                            </button>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                onClick={handleToggleActive}
+                                className={`px-2.5 py-1.5 rounded-xl font-bold text-[10px] uppercase transition-colors cursor-pointer ${
+                                  isActive 
+                                    ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200' 
+                                    : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                                }`}
+                                title={isActive ? 'Deactivate Doctor Portal' : 'Activate Doctor Portal'}
+                              >
+                                {isActive ? 'Deactivate' : 'Activate'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (isEditingPassword) {
+                                    setEditingDocId(null);
+                                  } else {
+                                    setEditingDocId(doc.id);
+                                    setNewDocPassword(doc.password || '');
+                                  }
+                                }}
+                                className="px-2.5 py-1.5 bg-slate-50 text-slate-700 hover:bg-slate-100 rounded-xl font-bold border border-slate-200 text-[10px] uppercase cursor-pointer"
+                                title="Change Doctor Password"
+                              >
+                                Password
+                              </button>
+                            </>
+                          )}
                           <button
-                            onClick={handleSavePassword}
-                            className="px-3 py-2 bg-red-600 text-white hover:bg-red-700 font-bold rounded-lg text-[10px] uppercase"
+                            type="button"
+                            onClick={() => deleteDoctor(doc.id)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
+                            title="Delete Doctor Profile"
                           >
-                            Save
-                          </button>
-                          <button
-                            onClick={() => setEditingDocId(null)}
-                            className="px-2 py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded-lg text-[10px] uppercase text-slate-700"
-                          >
-                            Cancel
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+
+                      {/* Doctor Bio and Qualifications detail block for Pending or Rejected */}
+                      {(doc.approvalStatus === 'pending' || doc.approvalStatus === 'rejected') && (
+                        <div className="mt-1 p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5 text-[11px] text-slate-700 leading-relaxed">
+                          <div><strong>Qualifications:</strong> {doc.qualifications}</div>
+                          <div><strong>Hospital / Clinic:</strong> {doc.hospital}</div>
+                          <div><strong>Office Address:</strong> {doc.address}</div>
+                          <div><strong>Languages Spoken:</strong> {Array.isArray(doc.languages) ? doc.languages.join(', ') : doc.languages}</div>
+                          <div className="pt-1.5 border-t border-slate-200 font-medium">
+                            <strong>Biography:</strong> {doc.bio}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Status Badge for Approved */}
+                      {(!doc.approvalStatus || doc.approvalStatus === 'approved') && (
+                        <div className="flex items-center gap-1.5 pt-1">
+                          <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
+                          <span className={`font-bold text-[10px] uppercase ${isActive ? 'text-emerald-700' : 'text-red-700'}`}>
+                            {isActive ? 'Portal Active & Listings Open' : 'PORTAL DEACTIVATED PERMANENTLY'}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Password Edit Mode */}
+                      {isEditingPassword && (
+                        <div className="mt-2 p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2">
+                          <div className="flex-1">
+                            <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Set New Password</label>
+                            <input
+                              type="text"
+                              value={newDocPassword}
+                              onChange={e => setNewDocPassword(e.target.value)}
+                              placeholder="Enter new password"
+                              className="w-full p-2 bg-white rounded-lg border border-slate-300 font-bold"
+                            />
+                          </div>
+                          <div className="flex items-end gap-1 mt-4">
+                            <button
+                              type="button"
+                              onClick={handleSavePassword}
+                              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingDocId(null)}
+                              className="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-bold"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
 

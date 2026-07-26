@@ -213,23 +213,33 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  // Doctor CRUD (Admin)
+  // Doctor CRUD (Admin & Signup)
   const addDoctor = (docData: Omit<Doctor, 'id' | 'rating' | 'reviewCount'>) => {
     const newDoc: Doctor = {
       ...docData,
       id: `doc-${Date.now()}`,
       rating: 5.0,
-      reviewCount: 1
+      reviewCount: 1,
+      approvalStatus: (docData as any).approvalStatus || 'approved'
     };
     setDoctors(prev => [newDoc, ...prev]);
 
     // Send Notification to all portals
-    addNotification({
-      title: '🩺 New Specialist Doctor Added',
-      message: `${newDoc.name} (${newDoc.specialty}) is now listed on the landing page and available for booking!`,
-      type: 'system',
-      targetPortal: 'landing'
-    });
+    if (newDoc.approvalStatus === 'approved') {
+      addNotification({
+        title: '🩺 New Specialist Doctor Added',
+        message: `${newDoc.name} (${newDoc.specialty}) is now listed on the landing page and available for booking!`,
+        type: 'system',
+        targetPortal: 'landing'
+      });
+    } else {
+      addNotification({
+        title: '🩺 New Doctor Registration',
+        message: `Dr. ${newDoc.name} has registered and is waiting for admin verification and approval.`,
+        type: 'system',
+        targetPortal: 'admin'
+      });
+    }
   };
 
   const editDoctor = (updatedDoc: Doctor) => {

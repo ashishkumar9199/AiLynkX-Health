@@ -49,7 +49,7 @@ export const Footer: React.FC = () => {
               <h3 className="font-extrabold text-base text-white tracking-tight">
                 AiLynk<span className="text-red-400 font-serif italic text-lg">X</span> <span className="text-emerald-400">Health</span>
               </h3>
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Telehealth Platform</p>
+              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">TELEHEALTH ECOSYSTEM PLATFORM</p>
             </div>
           </div>
 

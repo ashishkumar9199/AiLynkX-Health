@@ -19,21 +19,44 @@ import {
   Eye,
   EyeOff,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  X
 } from 'lucide-react';
 
 export const DoctorPortal: React.FC = () => {
-  const { doctors, appointments, editDoctor, startVideoCall, activeVideoCall, endVideoCall, updateAppointmentStatus, t } = useApp();
+  const { doctors, appointments, editDoctor, addDoctor, startVideoCall, activeVideoCall, endVideoCall, updateAppointmentStatus, t } = useApp();
 
   // Authentication State
   const [loggedInDocId, setLoggedInDocId] = useState<string | null>(() => {
     return localStorage.getItem('logged_in_doctor_id');
   });
 
+  const [authView, setAuthView] = useState<'signin' | 'signup'>(() => {
+    const mode = localStorage.getItem('doctor_portal_view_mode');
+    localStorage.removeItem('doctor_portal_view_mode'); // clear once consumed
+    return mode === 'signup' ? 'signup' : 'signin';
+  });
+
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
+
+  // Doctor Registration Form State
+  const [regName, setRegName] = useState('');
+  const [regSpecialty, setRegSpecialty] = useState('Cardiologist');
+  const [regQualifications, setRegQualifications] = useState('');
+  const [regExperience, setRegExperience] = useState<number>(5);
+  const [regFee, setRegFee] = useState<number>(50);
+  const [regHospital, setRegHospital] = useState('');
+  const [regAddress, setRegAddress] = useState('');
+  const [regBio, setRegBio] = useState('');
+  const [regLanguages, setRegLanguages] = useState('English');
+  const [regUsername, setRegUsername] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regAvatar, setRegAvatar] = useState('https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&auto=format&fit=crop&q=80');
+  const [regSuccess, setRegSuccess] = useState('');
+  const [regError, setRegError] = useState('');
 
   // Password Change State
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -69,17 +92,71 @@ export const DoctorPortal: React.FC = () => {
       return;
     }
 
-    // Check if deactivated
-    if (foundDoc.isActive === false) {
-      setLoginError('Your doctor ID has been deactivated permanently by the administrator. Portal access is suspended.');
-      return;
-    }
-
     // Successful login
     setLoggedInDocId(foundDoc.id);
     localStorage.setItem('logged_in_doctor_id', foundDoc.id);
     setUsernameInput('');
     setPasswordInput('');
+  };
+
+  // Handle Signup / Registration Submit
+  const handleSignupSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegError('');
+    setRegSuccess('');
+
+    if (!regName.trim() || !regQualifications.trim() || !regUsername.trim() || !regPassword.trim()) {
+      setRegError('Please fill in all required fields marked with *');
+      return;
+    }
+
+    const usernameTaken = doctors.some(d => d.username?.toLowerCase() === regUsername.trim().toLowerCase());
+    if (usernameTaken) {
+      setRegError('This username is already taken. Please choose another username.');
+      return;
+    }
+
+    const newDocObj = {
+      name: regName.trim().startsWith('Dr. ') ? regName.trim() : `Dr. ${regName.trim()}`,
+      specialty: regSpecialty,
+      qualifications: regQualifications.trim(),
+      experienceYears: Number(regExperience) || 1,
+      fee: Number(regFee) || 50,
+      consultationModes: ['video', 'clinic'] as ('video' | 'clinic')[],
+      availability: ['09:00 AM', '11:00 AM', '02:00 PM', '04:00 PM'],
+      avatar: regAvatar.trim() || 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&auto=format&fit=crop&q=80',
+      hospital: regHospital.trim() || 'General Clinic',
+      address: regAddress.trim() || 'Digital Telehealth Panel',
+      bio: regBio.trim() || 'Certified medical specialist on HealthConnect platform.',
+      languages: regLanguages.trim() ? regLanguages.split(',').map(s => s.trim()) : ['English'],
+      username: regUsername.trim().toLowerCase(),
+      password: regPassword,
+      isActive: true,
+      approvalStatus: 'pending' as const
+    };
+
+    addDoctor(newDocObj);
+
+    setRegSuccess('Your professional profile application was submitted successfully! Your account status is currently "Pending Approval". The portal administrator will verify your medical license & qualifications, then approve your request to list you on the ecosystem.');
+    
+    // Clear registration fields
+    setRegName('');
+    setRegQualifications('');
+    setRegHospital('');
+    setRegAddress('');
+    setRegBio('');
+    setRegLanguages('English');
+    setRegUsername('');
+    setRegPassword('');
+
+    // Pre-fill login credentials for them and switch view
+    setUsernameInput(newDocObj.username);
+    setPasswordInput(newDocObj.password);
+
+    setTimeout(() => {
+      setAuthView('signin');
+      setRegSuccess('');
+    }, 8000);
   };
 
   // Handle Logout
@@ -146,71 +223,385 @@ export const DoctorPortal: React.FC = () => {
     return matchesDoc && matchesMode;
   });
 
-  // Render Login Screen if not authenticated
-  if (!currentDoctor || currentDoctor.isActive === false) {
+  // 1. Render Login / Signup screen if not logged in
+  if (!loggedInDocId || !currentDoctor) {
     return (
-      <div className="max-w-md mx-auto my-12 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6">
+      <div className="max-w-xl mx-auto my-8 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6">
         <div className="text-center space-y-2">
           <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
             <Stethoscope className="w-8 h-8" />
           </div>
-          <h2 className="text-xl font-black text-slate-900">Medicare Doctor Portal</h2>
-          <p className="text-xs text-slate-500 font-medium max-w-xs mx-auto">
-            Authorized medical staff access only. Log in using the unique credentials assigned by your portal administrator.
+          <h2 className="text-2xl font-black text-slate-900">Medicare Doctor Portal</h2>
+          <p className="text-xs text-slate-500 font-medium max-w-sm mx-auto">
+            Authorized medical staff access. Register your profile to join the Telehealth Ecosystem, or sign in to manage your consultation queue.
           </p>
         </div>
 
-        {loginError && (
-          <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-800 text-xs font-semibold flex items-start gap-2.5">
-            <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-            <span>{loginError}</span>
+        {/* View Switch Tabs */}
+        <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <button
+            onClick={() => { setAuthView('signin'); setLoginError(''); setRegError(''); }}
+            className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${
+              authView === 'signin' ? 'bg-white text-emerald-700 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            Doctor Sign In
+          </button>
+          <button
+            onClick={() => { setAuthView('signup'); setLoginError(''); setRegError(''); }}
+            className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${
+              authView === 'signup' ? 'bg-white text-emerald-700 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            Apply to Join Panel
+          </button>
+        </div>
+
+        {authView === 'signin' ? (
+          /* Sign In Form */
+          <div className="space-y-4">
+            {loginError && (
+              <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-800 text-xs font-semibold flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <span>{loginError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleLoginSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Doctor Username *</label>
+                <input
+                  type="text"
+                  value={usernameInput}
+                  onChange={e => setUsernameInput(e.target.value)}
+                  placeholder="e.g. sarah123"
+                  className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Security Password *</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={passwordInput}
+                    onChange={e => setPasswordInput(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full p-3 rounded-xl border border-slate-300 font-bold tracking-wider"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer"
+              >
+                Authenticate & Log In
+              </button>
+            </form>
+          </div>
+        ) : (
+          /* Sign Up Form */
+          <div className="space-y-4">
+            {regError && (
+              <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-800 text-xs font-semibold flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <span>{regError}</span>
+              </div>
+            )}
+
+            {regSuccess && (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-medium flex items-start gap-2.5 leading-relaxed">
+                <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <span>{regSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSignupSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="sm:col-span-2">
+                <label className="block font-bold text-slate-700 mb-1">Full Name (including prefix) *</label>
+                <input
+                  type="text"
+                  value={regName}
+                  onChange={e => setRegName(e.target.value)}
+                  placeholder="e.g. Dr. Jane Cooper"
+                  className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Specialty Division *</label>
+                <select
+                  value={regSpecialty}
+                  onChange={e => setRegSpecialty(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-slate-300 font-medium bg-white"
+                >
+                  <option value="Cardiologist">Cardiologist</option>
+                  <option value="Internal Medicine & Diabetology">Internal Medicine & Diabetology</option>
+                  <option value="Dermatologist & Cosmetologist">Dermatologist & Cosmetologist</option>
+                  <option value="Orthopedic Specialist">Orthopedic Specialist</option>
+                  <option value="Pediatrician & Child Health">Pediatrician & Child Health</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Medical Qualifications *</label>
+                <input
+                  type="text"
+                  value={regQualifications}
+                  onChange={e => setRegQualifications(e.target.value)}
+                  placeholder="e.g. MD, FACP, MBBS"
+                  className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Years of Practice Experience *</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={regExperience}
+                  onChange={e => setRegExperience(Number(e.target.value))}
+                  placeholder="e.g. 10"
+                  className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Telehealth Consultation Fee ($) *</label>
+                <input
+                  type="number"
+                  min="10"
+                  value={regFee}
+                  onChange={e => setRegFee(Number(e.target.value))}
+                  placeholder="e.g. 75"
+                  className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Affiliated Hospital/Clinic *</label>
+                <input
+                  type="text"
+                  value={regHospital}
+                  onChange={e => setRegHospital(e.target.value)}
+                  placeholder="e.g. Mount Sinai Health"
+                  className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Practice Location/Address *</label>
+                <input
+                  type="text"
+                  value={regAddress}
+                  onChange={e => setRegAddress(e.target.value)}
+                  placeholder="e.g. 520 Medical Arts Center, NY"
+                  className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                  required
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block font-bold text-slate-700 mb-1">Professional Biography / Bio *</label>
+                <textarea
+                  value={regBio}
+                  onChange={e => setRegBio(e.target.value)}
+                  placeholder="Detail your clinical training, areas of expertise, and approach to digital telehealth patient care..."
+                  className="w-full p-3 rounded-xl border border-slate-300 font-medium h-20"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Languages Spoken (comma separated)</label>
+                <input
+                  type="text"
+                  value={regLanguages}
+                  onChange={e => setRegLanguages(e.target.value)}
+                  placeholder="e.g. English, Spanish, French"
+                  className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Avatar Photo URL</label>
+                <input
+                  type="text"
+                  value={regAvatar}
+                  onChange={e => setRegAvatar(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Select Username *</label>
+                <input
+                  type="text"
+                  value={regUsername}
+                  onChange={e => setRegUsername(e.target.value)}
+                  placeholder="e.g. drjane12"
+                  className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Select Password *</label>
+                <input
+                  type="password"
+                  value={regPassword}
+                  onChange={e => setRegPassword(e.target.value)}
+                  placeholder="Min 6 characters"
+                  className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                  required
+                />
+              </div>
+
+              <div className="sm:col-span-2 pt-2">
+                <button
+                  type="submit"
+                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer"
+                >
+                  Submit Registration Application
+                </button>
+              </div>
+            </form>
           </div>
         )}
 
-        <form onSubmit={handleLoginSubmit} className="space-y-4 text-xs">
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Doctor Username *</label>
-            <input
-              type="text"
-              value={usernameInput}
-              onChange={e => setUsernameInput(e.target.value)}
-              placeholder="e.g. sarah123"
-              className="w-full p-3 rounded-xl border border-slate-300 font-medium"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block font-bold text-slate-700 mb-1">Security Password *</label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={passwordInput}
-                onChange={e => setPasswordInput(e.target.value)}
-                placeholder="••••••••"
-                className="w-full p-3 rounded-xl border border-slate-300 font-bold tracking-wider"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all"
-          >
-            Authenticate & Log In
-          </button>
-        </form>
-
         <div className="pt-4 border-t border-slate-100 text-center text-[10px] text-slate-400 font-medium">
-          Medicare Doctor Portal • Managed Secure Access
+          HealthConnect Telehealth Network • Authorized Access Control
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Render Deactivated Screen if doctor is inactive
+  if (currentDoctor.isActive === false) {
+    return (
+      <div className="max-w-md mx-auto my-12 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6 text-center text-xs">
+        <div className="w-14 h-14 bg-red-100 text-red-700 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+          <AlertCircle className="w-8 h-8" />
+        </div>
+        <h2 className="text-xl font-black text-slate-900">Access Suspended</h2>
+        <div className="p-4 bg-red-50 border border-red-100 text-red-800 rounded-2xl leading-relaxed text-left">
+          Your medical practitioner portal has been deactivated by the system administrator. 
+          If you believe this is an error or wish to appeal the suspension of your clinical services, please reach out to the medical board coordinator.
+        </div>
+        <button
+          onClick={handleLogout}
+          className="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold uppercase tracking-wider"
+        >
+          Sign Out of Account
+        </button>
+      </div>
+    );
+  }
+
+  // 3. Render Pending Approval Screen if doctor is awaiting verification
+  if (currentDoctor.approvalStatus === 'pending') {
+    return (
+      <div className="max-w-xl mx-auto my-12 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6 text-xs">
+        <div className="text-center space-y-2">
+          <div className="w-14 h-14 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mx-auto shadow-sm animate-pulse">
+            <Clock className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-black text-slate-900">Application Under Verification</h2>
+          <span className="inline-block bg-amber-100 text-amber-800 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">
+            Verification Pending
+          </span>
+          <p className="text-slate-500 font-medium max-w-sm mx-auto">
+            Hello, {currentDoctor.name}. Your profile details are securely saved. However, to maintain the safety of our telehealth ecosystem, you must wait for administrator approval.
+          </p>
+        </div>
+
+        <div className="p-4 bg-amber-50/50 rounded-2xl border border-amber-200/50 space-y-3">
+          <h3 className="font-extrabold text-amber-950 uppercase text-[10px]">What is being verified?</h3>
+          <ul className="list-disc pl-4 space-y-1.5 text-slate-700">
+            <li>State medical board license status & credentials verification.</li>
+            <li>Board specialty certification validation ({currentDoctor.specialty}).</li>
+            <li>Qualifications check: {currentDoctor.qualifications}.</li>
+            <li>Valid affiliation with {currentDoctor.hospital}.</li>
+          </ul>
+        </div>
+
+        <div className="border border-slate-100 p-4 rounded-2xl space-y-2 bg-slate-50 text-[11px]">
+          <span className="font-bold text-slate-500 block uppercase text-[9px]">Your Submitted Details:</span>
+          <div><strong className="text-slate-700 font-bold">Doctor Name:</strong> {currentDoctor.name}</div>
+          <div><strong className="text-slate-700 font-bold">Specialty Division:</strong> {currentDoctor.specialty}</div>
+          <div><strong className="text-slate-700 font-bold">Hospital/Clinic:</strong> {currentDoctor.hospital}</div>
+          <div><strong className="text-slate-700 font-bold">Consult Fee:</strong> ${currentDoctor.fee}</div>
+          <div><strong className="text-slate-700 font-bold">Credentials:</strong> {currentDoctor.qualifications}</div>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={() => {
+              // Refresh state from localStorage to check if approved
+              window.location.reload();
+            }}
+            className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold uppercase tracking-wider cursor-pointer text-center"
+          >
+            Check Status Now
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold uppercase tracking-wider cursor-pointer"
+          >
+            Log Out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 4. Render Rejected Screen if doctor was rejected
+  if (currentDoctor.approvalStatus === 'rejected') {
+    return (
+      <div className="max-w-md mx-auto my-12 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6 text-center text-xs">
+        <div className="w-14 h-14 bg-red-100 text-red-700 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+          <X className="w-8 h-8" />
+        </div>
+        <h2 className="text-xl font-black text-slate-900">Application Rejected</h2>
+        <div className="p-4 bg-red-50 border border-red-100 text-red-800 rounded-2xl leading-relaxed text-left space-y-2">
+          <p className="font-bold text-red-950">Dear {currentDoctor.name},</p>
+          <p>
+            Your practitioner registration application has been rejected by the portal administrator. 
+            Common reasons include unverified licensing credentials, mismatching qualifications, or invalid clinic verification.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={() => {
+              // Let them sign up again by deleting this specific profile or resetting
+              // But standard logout & try again is easier
+              handleLogout();
+            }}
+            className="flex-1 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold uppercase tracking-wider cursor-pointer"
+          >
+            Try signup again
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold uppercase tracking-wider cursor-pointer"
+          >
+            Log Out
+          </button>
         </div>
       </div>
     );

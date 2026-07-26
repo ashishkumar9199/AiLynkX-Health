@@ -704,11 +704,11 @@ export const Chatbot: React.FC = () => {
             {flowState === 'book_select_doctor' && (
               <div className="space-y-2 animate-in fade-in duration-200">
                 <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold px-1 uppercase">
-                  <span>Available Panel ({doctors.length})</span>
+                  <span>Available Panel ({doctors.filter(d => d.approvalStatus === 'approved').length})</span>
                   <button onClick={() => resetFlow()} className="text-slate-500 hover:text-red-600">Cancel</button>
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-2 snap-x">
-                  {doctors.map(doc => (
+                  {doctors.filter(d => d.approvalStatus === 'approved').map(doc => (
                     <div 
                       key={doc.id} 
                       className="bg-white border border-slate-200 rounded-2xl p-3 min-w-[200px] max-w-[200px] shrink-0 snap-center flex flex-col justify-between shadow-xs hover:border-blue-600 transition-all"
