@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   MessageSquare, 
+  Bot,
   X, 
   Send, 
   User, 
@@ -538,7 +539,7 @@ export const Chatbot: React.FC = () => {
           {hasPulse && (
             <span className="absolute inset-0 rounded-full bg-red-600 animate-ping opacity-60"></span>
           )}
-          <MessageSquare className="w-6 h-6 relative z-10" />
+          <Bot className="w-6 h-6 relative z-10" />
           <span className="absolute right-14 bg-slate-900 text-white text-[11px] font-extrabold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-md whitespace-nowrap tracking-wide border border-slate-700">
             Dr. AiLynkX Carebot
           </span>
