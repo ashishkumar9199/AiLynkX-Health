@@ -27,12 +27,18 @@ export const Header: React.FC = () => {
     cart
   } = useApp();
 
+  const [isLangOpen, setIsLangOpen] = React.useState(false);
+
   const totalCartCount = cart.reduce((acc, curr) => acc + curr.quantity, 0);
 
   const languagesList: { code: Language; name: string; flag: string }[] = [
     { code: 'en', name: 'English', flag: '🇬🇧' },
     { code: 'es', name: 'Español', flag: '🇪🇸' },
     { code: 'hi', name: 'हिंदी', flag: '🇮🇳' },
+    { code: 'bn', name: 'বাংলা', flag: '🇮🇳' },
+    { code: 'ta', name: 'தமிழ்', flag: '🇮🇳' },
+    { code: 'te', name: 'తెలుగు', flag: '🇮🇳' },
+    { code: 'mr', name: 'मराठी', flag: '🇮🇳' },
     { code: 'fr', name: 'Français', flag: '🇫🇷' },
     { code: 'ar', name: 'العربية', flag: '🇸🇦' },
     { code: 'de', name: 'Deutsch', flag: '🇩🇪' }
@@ -126,39 +132,51 @@ export const Header: React.FC = () => {
         <div className="flex items-center gap-2 sm:gap-3">
 
           {/* Multi-Language Selector Pill */}
-          <div className="relative group">
+          <div className="relative">
             <button 
               id="language-selector-btn"
-              className="flex items-center gap-1.5 bg-blue-800 hover:bg-blue-900 text-white px-3 py-1.5 rounded-full text-xs font-bold transition-colors border border-blue-600 shadow-xs"
+              onClick={() => setIsLangOpen(!isLangOpen)}
+              className="flex items-center gap-1.5 bg-blue-800 hover:bg-blue-900 text-white px-3 py-1.5 rounded-full text-xs font-bold transition-colors border border-blue-600 shadow-xs cursor-pointer"
             >
               <Globe className="w-3.5 h-3.5 text-blue-200" />
               <span className="uppercase text-[11px] tracking-wider">{language}</span>
               <span className="hidden sm:inline text-xs">{languagesList.find(l => l.code === language)?.flag}</span>
-              <ChevronDown className="w-3 h-3 text-blue-300" />
+              <ChevronDown className={`w-3 h-3 text-blue-300 transition-transform duration-200 ${isLangOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Language Dropdown Menu */}
-            <div className="absolute right-0 mt-1 w-44 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 py-1 hidden group-hover:block z-50 animate-in fade-in duration-150">
-              <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                Select Language
-              </div>
-              {languagesList.map(lang => (
-                <button
-                  key={lang.code}
-                  id={`select-lang-${lang.code}`}
-                  onClick={() => setLanguage(lang.code)}
-                  className={`w-full text-left px-3 py-2 text-xs font-medium flex items-center justify-between hover:bg-blue-50 transition-colors ${
-                    language === lang.code ? 'text-blue-700 font-bold bg-blue-50/80' : 'text-slate-700'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <span>{lang.flag}</span>
-                    <span>{lang.name}</span>
-                  </span>
-                  {language === lang.code && <span className="text-blue-600 font-bold">✓</span>}
-                </button>
-              ))}
-            </div>
+            {isLangOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40 cursor-default" 
+                  onClick={() => setIsLangOpen(false)} 
+                />
+                <div className="absolute right-0 mt-1 w-48 bg-white text-slate-800 rounded-xl shadow-2xl border border-slate-200 py-1 z-50 animate-in fade-in duration-150 max-h-80 overflow-y-auto">
+                  <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                    Select Language
+                  </div>
+                  {languagesList.map(lang => (
+                    <button
+                      key={lang.code}
+                      id={`select-lang-${lang.code}`}
+                      onClick={() => {
+                        setLanguage(lang.code);
+                        setIsLangOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-xs font-medium flex items-center justify-between hover:bg-blue-50 transition-colors cursor-pointer ${
+                        language === lang.code ? 'text-blue-700 font-bold bg-blue-50/80' : 'text-slate-700'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>{lang.flag}</span>
+                        <span>{lang.name}</span>
+                      </span>
+                      {language === lang.code && <span className="text-blue-600 font-bold">✓</span>}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Notification Center Bell */}

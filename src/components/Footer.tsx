@@ -93,9 +93,9 @@ export const Footer: React.FC = () => {
             Care Services
           </h4>
           <ul className="space-y-1.5 text-slate-400 font-medium text-[11px]">
-            <li>🎥 HD Video Telehealth Call</li>
+            <li>🎥 video consulation</li>
             <li>🏥 In-Person Clinic Visits</li>
-            <li>🤖 Gemini AI Prescription Scanner</li>
+            <li>🤖 AI Prescription Scanner</li>
             <li>🩸 Home Sample Pickup Service</li>
             <li>💊 Express Pharmacy Store Delivery</li>
           </ul>

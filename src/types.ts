@@ -1,6 +1,6 @@
 export type PortalType = 'landing' | 'patient' | 'doctor' | 'pharmacy' | 'admin';
 
-export type Language = 'en' | 'es' | 'hi' | 'fr' | 'ar' | 'de';
+export type Language = 'en' | 'es' | 'hi' | 'bn' | 'ta' | 'te' | 'mr' | 'fr' | 'ar' | 'de';
 
 export interface Doctor {
   id: string;
