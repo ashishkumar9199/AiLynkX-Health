@@ -295,11 +295,16 @@ export const AdminPortal: React.FC = () => {
       <div className="max-w-md mx-auto my-12 bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-300">
         <div className="bg-gradient-to-br from-red-700 via-red-800 to-blue-950 text-white p-8 text-center relative">
           <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/20 rounded-full blur-xl pointer-events-none"></div>
-          <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center mx-auto mb-4 border border-white/20 shadow-inner">
-            <Lock className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/20 shadow-inner overflow-hidden bg-white">
+            <img
+              src="https://images.unsplash.com/photo-1516549655169-df83a0774514?w=120&h=120&fit=crop&auto=format&q=80"
+              alt="AiLynkX Logo"
+              className="w-full h-full object-cover animate-pulse"
+              referrerPolicy="no-referrer"
+            />
           </div>
           <h2 className="text-xl font-black tracking-tight text-white uppercase">
-            AiLynk<span className="text-red-400 font-serif italic text-2xl">X</span> Health
+            AiLynkX Admin Portal
           </h2>
           <p className="text-xs text-red-100/80 uppercase tracking-widest font-bold mt-1">
             Secure Admin Gateway

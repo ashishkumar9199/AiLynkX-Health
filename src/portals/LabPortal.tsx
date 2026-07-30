@@ -273,11 +273,16 @@ export const LabPortal: React.FC = () => {
       <div className="max-w-4xl mx-auto py-8 px-4" id="lab-auth-root">
         {/* Banner header */}
         <div className="text-center mb-8">
-          <div className="inline-flex p-3 bg-red-50 text-red-600 rounded-2xl mb-4 border border-red-100 shadow-sm">
-            <Beaker className="w-8 h-8 animate-pulse" />
+          <div className="inline-flex w-14 h-14 rounded-2xl mb-4 border border-slate-100 shadow-sm overflow-hidden justify-center items-center">
+            <img
+              src="https://images.unsplash.com/photo-1516549655169-df83a0774514?w=120&h=120&fit=crop&auto=format&q=80"
+              alt="AiLynkX Logo"
+              className="w-full h-full object-cover animate-pulse"
+              referrerPolicy="no-referrer"
+            />
           </div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-            Diagnostic & Lab Partners
+            AiLynkX Lab Portal
           </h1>
           <p className="text-slate-500 mt-2 font-medium max-w-lg mx-auto text-sm sm:text-base">
             Secure administrative console for registered diagnostic laboratories, pathology centers, and phlebotomists.

@@ -62,7 +62,7 @@ export const PatientPortal: React.FC = () => {
       <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div>
           <span className="bg-red-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full tracking-wider mb-2 inline-block">
-            Patient Portal
+            AiLynkX Patient Portal
           </span>
           <h1 className="text-2xl sm:text-3xl font-black text-white">
             Welcome to Your Health Dashboard

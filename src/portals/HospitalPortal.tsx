@@ -402,12 +402,17 @@ export const HospitalPortal: React.FC = () => {
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 bg-blue-600/90 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-              <Hospital className="w-3.5 h-3.5 text-blue-200" />
+            <div className="inline-flex items-center gap-2 bg-blue-600/90 text-white px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
+              <img
+                src="https://images.unsplash.com/photo-1516549655169-df83a0774514?w=120&h=120&fit=crop&auto=format&q=80"
+                alt="AiLynkX Logo"
+                className="w-4 h-4 rounded-full object-cover animate-pulse border border-white/25"
+                referrerPolicy="no-referrer"
+              />
               Institutions & Clinics
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              {currentHospital ? currentHospital.name : 'Hospital Portal'}
+              {currentHospital ? currentHospital.name : 'AiLynkX Hospital Portal'}
             </h1>
             <p className="text-sm text-blue-100 max-w-xl">
               {currentHospital 

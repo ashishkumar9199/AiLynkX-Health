@@ -229,10 +229,15 @@ export const DoctorPortal: React.FC = () => {
     return (
       <div className="max-w-xl mx-auto my-8 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-14 h-14 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
-            <Stethoscope className="w-8 h-8" />
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto shadow-sm overflow-hidden border border-slate-100">
+            <img
+              src="https://images.unsplash.com/photo-1516549655169-df83a0774514?w=120&h=120&fit=crop&auto=format&q=80"
+              alt="AiLynkX Logo"
+              className="w-full h-full object-cover animate-pulse"
+              referrerPolicy="no-referrer"
+            />
           </div>
-          <h2 className="text-2xl font-black text-slate-900">Medicare Doctor Portal</h2>
+          <h2 className="text-2xl font-black text-slate-900">AiLynkX Doctor Portal</h2>
           <p className="text-xs text-slate-500 font-medium max-w-sm mx-auto">
             Authorized medical staff access. Register your profile to join the Telehealth Ecosystem, or sign in to manage your consultation queue.
           </p>
