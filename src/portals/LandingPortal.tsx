@@ -32,6 +32,21 @@ export const LandingPortal: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSampleModalOpen, setIsSampleModalOpen] = useState(false);
 
+  const [currentBgIndex, setCurrentBgIndex] = useState(0);
+  const backgroundImages = [
+    "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=1200&q=80", // Doctors consulting
+    "https://images.unsplash.com/photo-1581594693702-fbdc51b2763b?auto=format&fit=crop&w=1200&q=80", // Laboratory diagnostic diagnostics
+    "https://images.unsplash.com/photo-1504813184591-015556c5c572?auto=format&fit=crop&w=1200&q=80", // Medical clinic hospital treatment
+    "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=1200&q=80"  // Online consultation video telehealth
+  ];
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentBgIndex((prev) => (prev + 1) % backgroundImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [backgroundImages.length]);
+
   // Filter Doctors (added by admin and approved)
   const filteredDoctors = doctors.filter(doc => {
     // Only approved doctors appear on the public panel
@@ -50,9 +65,38 @@ export const LandingPortal: React.FC = () => {
     <div className="space-y-12 pb-16">
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-950 text-white rounded-3xl p-6 sm:p-12 shadow-2xl relative overflow-hidden border border-blue-700">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+      <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-950 text-white rounded-3xl p-6 sm:p-12 shadow-2xl relative overflow-hidden border border-blue-700 min-h-[380px]">
+        {/* Background Slideshow Overlay */}
+        <div className="absolute inset-0 z-0">
+          {backgroundImages.map((src, idx) => (
+            <img
+              key={src}
+              src={src}
+              alt={`Service slide ${idx + 1}`}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
+                idx === currentBgIndex ? 'opacity-25' : 'opacity-0'
+              }`}
+              referrerPolicy="no-referrer"
+            />
+          ))}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-950/95 via-blue-900/80 to-indigo-950/95 mix-blend-multiply"></div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        </div>
+
+        {/* Slide Indicators inside hero background */}
+        <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/10">
+          {backgroundImages.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentBgIndex(idx)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                idx === currentBgIndex ? 'bg-red-500 w-4' : 'bg-white/40 hover:bg-white/70'
+              }`}
+              aria-label={`Go to background slide ${idx + 1}`}
+            />
+          ))}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
           <div className="lg:col-span-12 space-y-6">

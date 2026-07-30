@@ -10,7 +10,11 @@ import {
   CheckCircle2, 
   FileCheck,
   ShieldCheck,
-  Upload
+  Upload,
+  Star,
+  Award,
+  Check,
+  Building
 } from 'lucide-react';
 
 interface Props {
@@ -18,7 +22,29 @@ interface Props {
 }
 
 export const HomeSampleCollectionModal: React.FC<Props> = ({ onClose }) => {
-  const { requestHomeSample, t, setPortal } = useApp();
+  const { requestHomeSample, t, setPortal, labs } = useApp();
+
+  const activeLabs = labs.filter(lab => lab.approvalStatus === 'approved' && lab.isActive !== false);
+  const fallbackLabs = activeLabs.length > 0 ? activeLabs : labs;
+
+  const [selectedLabId, setSelectedLabId] = useState<string>(() => {
+    return fallbackLabs[0]?.id || '';
+  });
+
+  const getLabTestPrice = (labId: string, basePrice: number) => {
+    if (labId === 'lab-2') {
+      return Math.round(basePrice * 0.9 * 100) / 100; // Precision Pathology 10% off
+    }
+    return basePrice;
+  };
+
+  const getLabCollectionFee = (labId: string) => {
+    if (labId === 'lab-1') return 10.00;
+    if (labId === 'lab-2') return 6.00;
+    return 12.00; // Default fee for custom laboratories
+  };
+
+  const selectedLab = fallbackLabs.find(l => l.id === selectedLabId) || fallbackLabs[0];
 
   const [selectedTestIds, setSelectedTestIds] = useState<string[]>(['test-1']);
   const [preferredDate, setPreferredDate] = useState('2026-07-26');
@@ -39,7 +65,11 @@ export const HomeSampleCollectionModal: React.FC<Props> = ({ onClose }) => {
   };
 
   const selectedTests = initialLabTests.filter(t => selectedTestIds.includes(t.id));
-  const totalAmount = selectedTests.reduce((acc, curr) => acc + curr.price, 0);
+  const collectionFee = selectedLab ? getLabCollectionFee(selectedLab.id) : 10.00;
+  const totalAmount = selectedTests.reduce((acc, curr) => {
+    const labPrice = selectedLab ? getLabTestPrice(selectedLab.id, curr.price) : curr.price;
+    return acc + labPrice;
+  }, 0) + collectionFee;
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -59,6 +89,11 @@ export const HomeSampleCollectionModal: React.FC<Props> = ({ onClose }) => {
       return;
     }
 
+    if (!selectedLab) {
+      alert("Please select a partner laboratory.");
+      return;
+    }
+
     if (!patientName.trim() || !patientPhone.trim() || !patientAddress.trim()) {
       alert("Please enter full name, phone number, and address for home sample collection.");
       return;
@@ -71,12 +106,17 @@ export const HomeSampleCollectionModal: React.FC<Props> = ({ onClose }) => {
         patientName,
         patientPhone,
         patientAddress,
-        selectedTests: selectedTests.map(t => t.name),
+        selectedTests: selectedTests.map(t => {
+          const price = selectedLab ? getLabTestPrice(selectedLab.id, t.price) : t.price;
+          return `${t.name} ($${price.toFixed(2)})`;
+        }),
         preferredDate,
         preferredTime,
         requisitionPdfName: requisitionPdf?.name,
         requisitionPdfUrl: requisitionPdf?.url,
-        totalAmount
+        totalAmount,
+        labId: selectedLab.id,
+        labName: selectedLab.name
       });
 
       setCreatedRequestId(res.id);
@@ -189,11 +229,111 @@ export const HomeSampleCollectionModal: React.FC<Props> = ({ onClose }) => {
                 </div>
               </div>
 
-              {/* 2. Patient Pickup Details */}
+              {/* 2. Choose Laboratory Partner (Vendor) */}
+              <div>
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
+                  2. Choose Laboratory Partner (Vendor)
+                </label>
+                <div className="space-y-3">
+                  {fallbackLabs.map(lab => {
+                    const isSelected = lab.id === selectedLabId;
+                    const collectionFeeForLab = getLabCollectionFee(lab.id);
+                    
+                    // Compute subtotal and total for this lab to show full comparison
+                    const testPrices = selectedTests.map(t => {
+                      const finalPrice = getLabTestPrice(lab.id, t.price);
+                      return { name: t.name, price: finalPrice };
+                    });
+                    
+                    const testSubtotal = testPrices.reduce((sum, item) => sum + item.price, 0);
+                    const grandTotalForLab = testSubtotal + collectionFeeForLab;
+
+                    return (
+                      <div
+                        key={lab.id}
+                        id={`select-vendor-${lab.id}`}
+                        onClick={() => setSelectedLabId(lab.id)}
+                        className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ${
+                          isSelected
+                            ? 'border-red-600 bg-red-50/50 ring-1 ring-red-600/30'
+                            : 'border-slate-200 bg-white hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <img 
+                            src={lab.image} 
+                            alt={lab.name}
+                            className="w-12 h-12 rounded-xl object-cover shrink-0 border border-slate-100"
+                            referrerPolicy="no-referrer"
+                          />
+                          <div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-extrabold text-sm text-slate-900">
+                                {lab.name}
+                              </span>
+                              <div className="flex items-center gap-0.5 bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded text-[10px] font-bold border border-amber-200">
+                                <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                                <span>{lab.rating || 4.8}</span>
+                              </div>
+                            </div>
+                            <span className="text-[10px] text-slate-500 block mt-0.5">
+                              {lab.address}
+                            </span>
+                            
+                            {/* Detailed breakdown per test at this lab */}
+                            {selectedTests.length > 0 ? (
+                              <div className="mt-2 text-[10px] text-slate-600 space-y-0.5 bg-slate-100/60 p-2 rounded-lg border border-slate-200/50">
+                                <p className="font-bold text-slate-700">Test Pricing:</p>
+                                {testPrices.map((tp, idx) => (
+                                  <div key={idx} className="flex justify-between gap-6">
+                                    <span className="truncate max-w-[180px] text-slate-700">{tp.name}</span>
+                                    <span className="font-bold text-slate-900">${tp.price.toFixed(2)}</span>
+                                  </div>
+                                ))}
+                                <div className="border-t border-slate-200 mt-1 pt-1 flex justify-between font-semibold text-slate-700">
+                                  <span>Home Collection Fee</span>
+                                  <span>${collectionFeeForLab.toFixed(2)}</span>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-[10px] text-red-500 mt-1 font-semibold">Please select tests first</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Grand Total Comparison */}
+                        <div className="flex items-center justify-between md:flex-col md:items-end w-full md:w-auto border-t md:border-t-0 pt-2.5 md:pt-0 border-slate-100">
+                          <div className="md:text-right">
+                            <span className="text-[10px] text-slate-400 block font-medium">Estimated Total:</span>
+                            <span className="text-sm font-black text-blue-950">${grandTotalForLab.toFixed(2)}</span>
+                          </div>
+                          <div className="mt-2 shrink-0">
+                            {isSelected ? (
+                              <span className="bg-red-600 text-white font-extrabold text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1 uppercase tracking-wider">
+                                <Check className="w-3 h-3" />
+                                Selected
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                className="text-red-600 border border-red-200 hover:bg-red-50 font-bold text-[10px] px-3 py-1 rounded-full transition-colors uppercase tracking-wider"
+                              >
+                                Select Vendor
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 3. Address & Contact Information */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                 <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-800 flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-red-600" />
-                  Address & Contact Information
+                  3. Address & Contact Information
                 </h4>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -230,7 +370,7 @@ export const HomeSampleCollectionModal: React.FC<Props> = ({ onClose }) => {
 
                 <div>
                   <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                    Home Address for Technician Visit *
+                    Home Address for Phlebotomist Visit *
                   </label>
                   <textarea
                     rows={2}
@@ -298,7 +438,7 @@ export const HomeSampleCollectionModal: React.FC<Props> = ({ onClose }) => {
               {/* Total & Action */}
               <div className="flex items-center justify-between pt-2 border-t border-slate-200">
                 <div>
-                  <span className="text-xs text-slate-500 block">Total Lab Fee:</span>
+                  <span className="text-xs text-slate-500 block">Total Lab Fee ({selectedLab?.name || 'Partner'}):</span>
                   <span className="text-2xl font-black text-blue-950">${totalAmount.toFixed(2)}</span>
                 </div>
 

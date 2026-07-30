@@ -251,8 +251,16 @@ export const LabPortal: React.FC = () => {
     setReportComments(findings);
   };
 
+  // Filter sample requests assigned specifically to this lab partner, or legacy unassigned ones
+  const labSpecificRequests = sampleRequests.filter(req => {
+    if (req.labId) {
+      return req.labId === loggedInLabId;
+    }
+    return true; // Fallback for legacy requests without explicit labId
+  });
+
   // Filtering Requests
-  const filteredRequests = sampleRequests.filter(req => {
+  const filteredRequests = labSpecificRequests.filter(req => {
     const matchesSearch = req.patientName.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           req.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           req.selectedTests.some(t => t.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -261,11 +269,11 @@ export const LabPortal: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Calculate stats
-  const totalCount = sampleRequests.length;
-  const pendingAssignCount = sampleRequests.filter(r => r.status === 'pending').length;
-  const collectedCount = sampleRequests.filter(r => r.status === 'sample-collected').length;
-  const readyCount = sampleRequests.filter(r => r.status === 'report-ready').length;
+  // Calculate stats based on lab-specific requests
+  const totalCount = labSpecificRequests.length;
+  const pendingAssignCount = labSpecificRequests.filter(r => r.status === 'pending').length;
+  const collectedCount = labSpecificRequests.filter(r => r.status === 'sample-collected').length;
+  const readyCount = labSpecificRequests.filter(r => r.status === 'report-ready').length;
 
   // Render Login & Registration Panels
   if (!loggedInLabId || !currentLab) {

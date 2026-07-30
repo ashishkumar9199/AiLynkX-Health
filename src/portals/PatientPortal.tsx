@@ -312,6 +312,12 @@ export const PatientPortal: React.FC = () => {
                       Tests: {req.selectedTests.join(', ')}
                     </p>
 
+                    {req.labName && (
+                      <p className="text-xs text-slate-500 font-medium">
+                        Laboratory Partner: <span className="font-extrabold text-blue-900 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-md inline-block">{req.labName}</span>
+                      </p>
+                    )}
+
                     <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-600 grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <p>📅 Date: {req.preferredDate} ({req.preferredTime})</p>
                       <p>📍 Address: {req.patientAddress}</p>
