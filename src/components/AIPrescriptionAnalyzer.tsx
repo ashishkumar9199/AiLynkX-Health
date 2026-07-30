@@ -129,10 +129,6 @@ export const AIPrescriptionAnalyzer: React.FC = () => {
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-2 bg-red-600/90 text-white px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-3 shadow-xs">
-              <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-              Gemini AI Powered Scanner
-            </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
               {t('analyzerTitle')}
             </h2>
@@ -242,7 +238,6 @@ export const AIPrescriptionAnalyzer: React.FC = () => {
               </>
             ) : (
               <>
-                <Sparkles className="w-5 h-5 text-yellow-300" />
                 <span>{t('analyzeBtn')}</span>
               </>
             )}

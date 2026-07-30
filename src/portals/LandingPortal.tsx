@@ -89,7 +89,6 @@ export const LandingPortal: React.FC = () => {
                 }}
                 className="bg-white text-blue-950 hover:bg-blue-50 font-extrabold px-6 py-3.5 rounded-2xl shadow-md transition-all flex items-center gap-2 text-sm border border-blue-200"
               >
-                <Sparkles className="w-5 h-5 text-red-600" />
                 <span>{t('prescriptionAnalyzer')}</span>
               </button>
             </div>
@@ -123,17 +122,29 @@ export const LandingPortal: React.FC = () => {
             const elem = document.getElementById('doctors-section');
             if (elem) elem.scrollIntoView({ behavior: 'smooth' });
           }}
-          className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-500 transition-all text-left group"
+          className="relative h-44 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all text-left group border border-slate-200 cursor-pointer"
         >
-          <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-            <Stethoscope className="w-5 h-5" />
+          {/* Background Image */}
+          <div className="absolute inset-0 z-0">
+            <img 
+              src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=600&q=80" 
+              alt={t('bookAppointment')}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 brightness-[0.4]"
+              referrerPolicy="no-referrer"
+            />
+            {/* Gradient Overlay for Readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
           </div>
-          <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-blue-700">
-            {t('bookAppointment')}
-          </h3>
-          <p className="text-[11px] text-slate-500 mt-1">
-            Video Call or Clinic Visit
-          </p>
+          
+          {/* Content */}
+          <div className="relative z-10 h-full p-5 flex flex-col justify-end">
+            <h3 className="font-black text-sm sm:text-base text-white tracking-tight drop-shadow-sm group-hover:text-blue-300 transition-colors">
+              {t('bookAppointment')}
+            </h3>
+            <p className="text-[11px] sm:text-xs text-slate-200 font-medium mt-1 leading-snug drop-shadow-xs">
+              Video Call or Clinic Visit
+            </p>
+          </div>
         </button>
 
         <button
@@ -142,49 +153,85 @@ export const LandingPortal: React.FC = () => {
             const elem = document.getElementById('prescription-analyzer-section');
             if (elem) elem.scrollIntoView({ behavior: 'smooth' });
           }}
-          className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-red-500 transition-all text-left group"
+          className="relative h-44 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all text-left group border border-slate-200 cursor-pointer"
         >
-          <div className="w-10 h-10 rounded-xl bg-red-100 text-red-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-            <Sparkles className="w-5 h-5" />
+          {/* Background Image */}
+          <div className="absolute inset-0 z-0">
+            <img 
+              src="https://images.unsplash.com/photo-1527689368864-3a821dbccc34?auto=format&fit=crop&w=600&q=80" 
+              alt={t('prescriptionAnalyzer')}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 brightness-[0.4]"
+              referrerPolicy="no-referrer"
+            />
+            {/* Gradient Overlay for Readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
           </div>
-          <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-red-700">
-            {t('prescriptionAnalyzer')}
-          </h3>
-          <p className="text-[11px] text-slate-500 mt-1">
-            AI record & PDF scanner
-          </p>
+          
+          {/* Content */}
+          <div className="relative z-10 h-full p-5 flex flex-col justify-end">
+            <h3 className="font-black text-sm sm:text-base text-white tracking-tight drop-shadow-sm group-hover:text-red-300 transition-colors">
+              {t('prescriptionAnalyzer')}
+            </h3>
+            <p className="text-[11px] sm:text-xs text-slate-200 font-medium mt-1 leading-snug drop-shadow-xs">
+              AI record & PDF scanner
+            </p>
+          </div>
         </button>
 
         <button
           id="quick-action-sample"
           onClick={() => setIsSampleModalOpen(true)}
-          className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-500 transition-all text-left group"
+          className="relative h-44 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all text-left group border border-slate-200 cursor-pointer"
         >
-          <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-            <TestTube2 className="w-5 h-5" />
+          {/* Background Image */}
+          <div className="absolute inset-0 z-0">
+            <img 
+              src="https://images.unsplash.com/photo-1581594693702-fbdc51b2763b?auto=format&fit=crop&w=600&q=80" 
+              alt={t('homeSample')}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 brightness-[0.4]"
+              referrerPolicy="no-referrer"
+            />
+            {/* Gradient Overlay for Readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
           </div>
-          <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-emerald-700">
-            {t('homeSample')}
-          </h3>
-          <p className="text-[11px] text-slate-500 mt-1">
-            Doorstep phlebotomist
-          </p>
+          
+          {/* Content */}
+          <div className="relative z-10 h-full p-5 flex flex-col justify-end">
+            <h3 className="font-black text-sm sm:text-base text-white tracking-tight drop-shadow-sm group-hover:text-emerald-300 transition-colors">
+              {t('homeSample')}
+            </h3>
+            <p className="text-[11px] sm:text-xs text-slate-200 font-medium mt-1 leading-snug drop-shadow-xs">
+              Doorstep phlebotomist
+            </p>
+          </div>
         </button>
 
         <button
           id="quick-action-pharmacy"
           onClick={() => setPortal('pharmacy')}
-          className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-amber-500 transition-all text-left group"
+          className="relative h-44 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all text-left group border border-slate-200 cursor-pointer"
         >
-          <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-            <Pill className="w-5 h-5" />
+          {/* Background Image */}
+          <div className="absolute inset-0 z-0">
+            <img 
+              src="https://images.unsplash.com/photo-1586015555751-63bb77f4322a?auto=format&fit=crop&w=600&q=80" 
+              alt={t('orderMedicines')}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 brightness-[0.4]"
+              referrerPolicy="no-referrer"
+            />
+            {/* Gradient Overlay for Readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
           </div>
-          <h3 className="font-extrabold text-sm text-slate-900 group-hover:text-amber-700">
-            {t('orderMedicines')}
-          </h3>
-          <p className="text-[11px] text-slate-500 mt-1">
-            From admin stores
-          </p>
+          
+          {/* Content */}
+          <div className="relative z-10 h-full p-5 flex flex-col justify-end">
+            <h3 className="font-black text-sm sm:text-base text-white tracking-tight drop-shadow-sm group-hover:text-amber-300 transition-colors">
+              {t('orderMedicines')}
+            </h3>
+            <p className="text-[11px] sm:text-xs text-slate-200 font-medium mt-1 leading-snug drop-shadow-xs">
+              From admin stores
+            </p>
+          </div>
         </button>
 
       </section>
@@ -305,10 +352,6 @@ export const LandingPortal: React.FC = () => {
       {/* Medical Professional / Doctor Join Banner */}
       <section className="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 text-white rounded-3xl p-8 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 border border-slate-700">
         <div className="space-y-2 max-w-xl text-left">
-          <div className="inline-flex items-center gap-1.5 bg-slate-700 text-slate-100 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-            <Stethoscope className="w-3.5 h-3.5 text-emerald-400" />
-            Medical Professionals Wanted
-          </div>
           <h3 className="text-2xl font-black text-white">
             Are you a Registered Medical Doctor?
           </h3>
