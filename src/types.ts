@@ -1,6 +1,21 @@
-export type PortalType = 'landing' | 'patient' | 'doctor' | 'pharmacy' | 'admin';
+export type PortalType = 'landing' | 'patient' | 'doctor' | 'pharmacy' | 'admin' | 'hospital' | 'lab';
 
 export type Language = 'en' | 'es' | 'hi' | 'bn' | 'ta' | 'te' | 'mr' | 'fr' | 'ar' | 'de';
+
+export interface Hospital {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  username: string;
+  password?: string;
+  image: string;
+  isActive?: boolean;
+  bio?: string;
+  rating?: number;
+  approvalStatus?: 'approved' | 'pending' | 'rejected';
+}
 
 export interface Doctor {
   id: string;
@@ -22,6 +37,7 @@ export interface Doctor {
   password?: string;
   isActive?: boolean;
   approvalStatus?: 'approved' | 'pending' | 'rejected';
+  hospitalId?: string;
 }
 
 export interface UploadedMedicalDoc {
@@ -74,6 +90,25 @@ export interface HomeSampleRequest {
   technicianPhone?: string;
   totalAmount: number;
   createdAt: string;
+  reportPdfUrl?: string;
+  reportPdfName?: string;
+  reportComments?: string;
+  labId?: string;
+  labName?: string;
+}
+
+export interface DiagnosticLab {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  licenseNumber: string;
+  rating: number;
+  image: string;
+  username?: string;
+  password?: string;
+  isActive?: boolean;
+  approvalStatus?: 'approved' | 'pending' | 'rejected';
 }
 
 export interface PharmacyStore {
@@ -89,6 +124,7 @@ export interface PharmacyStore {
   username?: string;
   password?: string;
   isActive?: boolean;
+  approvalStatus?: 'approved' | 'pending' | 'rejected';
 }
 
 export interface MedicineItem {

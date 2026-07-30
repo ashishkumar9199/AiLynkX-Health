@@ -13,6 +13,8 @@ export const translations: Record<Language, Record<string, string>> = {
     portalDoctor: "Doctor Consultation Workspace",
     portalPharmacy: "Pharmacy & Medicine Store",
     portalAdmin: "Admin Management Portal",
+    portalHospital: "Hospital Administration Portal",
+    portalLab: "Lab & Diagnostic Center",
     
     // Quick Actions
     bookAppointment: "Book Appointment",
@@ -120,6 +122,7 @@ export const translations: Record<Language, Record<string, string>> = {
     portalDoctor: "Área de Consulta Médica",
     portalPharmacy: "Farmacia y Medicamentos",
     portalAdmin: "Portal de Administración",
+    portalHospital: "Portal de Administración de Hospitales",
     
     bookAppointment: "Reservar Cita",
     prescriptionAnalyzer: "Analizador de Recetas IA",

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { PhotoUpload } from '../components/PhotoUpload';
 import { Doctor, PharmacyStore, MedicineItem } from '../types';
 import { 
   ShieldCheck, 
@@ -24,7 +25,8 @@ import {
   Settings,
   Key,
   Clock,
-  X
+  X,
+  Beaker
 } from 'lucide-react';
 
 export const AdminPortal: React.FC = () => {
@@ -33,6 +35,10 @@ export const AdminPortal: React.FC = () => {
     addDoctor, 
     editDoctor,
     deleteDoctor, 
+    hospitals,
+    addHospital,
+    editHospital,
+    deleteHospital,
     stores, 
     addStore, 
     editStore,
@@ -44,11 +50,15 @@ export const AdminPortal: React.FC = () => {
     updateAppointmentStatus, 
     updateSampleStatus, 
     updateOrderStatus,
+    labs,
+    addLab,
+    editLab,
+    deleteLab,
     t,
     setPortal
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'doctors' | 'stores' | 'appointments' | 'samples' | 'orders' | 'security'>('doctors');
+  const [activeTab, setActiveTab] = useState<'doctors' | 'hospitals' | 'stores' | 'appointments' | 'samples' | 'orders' | 'security' | 'labs'>('doctors');
 
   // Admin Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -123,6 +133,8 @@ export const AdminPortal: React.FC = () => {
   const [editingDocId, setEditingDocId] = useState<string | null>(null);
   const [newDocPassword, setNewDocPassword] = useState('');
   const [docStatusTab, setDocStatusTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  const [hospStatusTab, setHospStatusTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  const [storeStatusTab, setStoreStatusTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
 
   // Pharmacy Store Form State
   const [storeName, setStoreName] = useState('');
@@ -132,6 +144,7 @@ export const AdminPortal: React.FC = () => {
   const [storeDelivery, setStoreDelivery] = useState('20-35 mins');
   const [storeUsername, setStoreUsername] = useState('');
   const [storePassword, setStorePassword] = useState('');
+  const [storeImage, setStoreImage] = useState('https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=500&auto=format&fit=crop&q=80');
   const [storeAddedSuccess, setStoreAddedSuccess] = useState(false);
 
   // States for pharmacy store password editing in Admin list
@@ -147,6 +160,54 @@ export const AdminPortal: React.FC = () => {
   const [medRequiresRx, setMedRequiresRx] = useState(false);
   const [medDosageForm, setMedDosageForm] = useState('10 Tablets');
   const [medDesc, setMedDesc] = useState('');
+
+  // Hospital Form State in Admin
+  const [hospName, setHospName] = useState('');
+  const [hospAddress, setHospAddress] = useState('');
+  const [hospPhone, setHospPhone] = useState('');
+  const [hospEmail, setHospEmail] = useState('');
+  const [hospBio, setHospBio] = useState('');
+  const [hospUsername, setHospUsername] = useState('');
+  const [hospPassword, setHospPassword] = useState('');
+  const [hospImage, setHospImage] = useState('https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=600&auto=format&fit=crop&q=80');
+  const [hospAddedSuccess, setHospAddedSuccess] = useState(false);
+  const [hospError, setHospError] = useState('');
+
+  const handleAddHospitalSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setHospError('');
+    setHospAddedSuccess(false);
+
+    if (!hospName.trim() || !hospUsername.trim() || !hospPassword.trim()) {
+      setHospError('Please fill in Name, Username, and Password.');
+      return;
+    }
+
+    addHospital({
+      name: hospName.trim(),
+      address: hospAddress.trim() || 'Digital Telehealth Network',
+      phone: hospPhone.trim() || '+1 (555) 000-0000',
+      email: hospEmail.trim() || 'contact@hospital.org',
+      bio: hospBio.trim() || 'Licensed hospital center.',
+      username: hospUsername.trim().toLowerCase(),
+      password: hospPassword.trim(),
+      image: hospImage.trim() || 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=600&auto=format&fit=crop&q=80',
+      approvalStatus: 'approved' as const
+    });
+
+    setHospAddedSuccess(true);
+    setHospName('');
+    setHospAddress('');
+    setHospPhone('');
+    setHospEmail('');
+    setHospBio('');
+    setHospUsername('');
+    setHospPassword('');
+
+    setTimeout(() => {
+      setHospAddedSuccess(false);
+    }, 4000);
+  };
 
   // Submit Doctor Form
   const handleAddDoctorSubmit = (e: React.FormEvent) => {
@@ -191,10 +252,11 @@ export const AdminPortal: React.FC = () => {
       phone: storePhone || '+1 (800) 555-0100',
       licenseNumber: storeLicense || `PH-${Math.floor(10000 + Math.random() * 90000)}`,
       deliveryTime: storeDelivery,
-      image: 'https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=500&auto=format&fit=crop&q=80',
+      image: storeImage || 'https://images.unsplash.com/photo-1586015555751-63bb77f4322a?w=500&auto=format&fit=crop&q=80',
       username: storeUsername.trim() || `pharmacy_${storeName.toLowerCase().replace(/\s+/g, '_')}`,
       password: storePassword.trim() || 'password123',
-      isActive: true
+      isActive: true,
+      approvalStatus: 'approved' as const
     });
 
     setStoreAddedSuccess(true);
@@ -388,6 +450,17 @@ export const AdminPortal: React.FC = () => {
         </button>
 
         <button
+          id="admin-tab-hospitals"
+          onClick={() => setActiveTab('hospitals')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap ${
+            activeTab === 'hospitals' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Building2 className="w-4 h-4" />
+          Manage Hospitals ({hospitals ? hospitals.length : 0})
+        </button>
+
+        <button
           id="admin-tab-stores"
           onClick={() => setActiveTab('stores')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap ${
@@ -418,6 +491,17 @@ export const AdminPortal: React.FC = () => {
         >
           <TestTube2 className="w-4 h-4" />
           Home Lab Requests ({sampleRequests.length})
+        </button>
+
+        <button
+          id="admin-tab-labs"
+          onClick={() => setActiveTab('labs')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap ${
+            activeTab === 'labs' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Beaker className="w-4 h-4" />
+          Partner Laboratories ({labs ? labs.length : 0})
         </button>
 
         <button
@@ -517,14 +601,11 @@ export const AdminPortal: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Profile Photo Avatar URL</label>
-                <input
-                  type="url"
-                  id="admin-doc-avatar"
+                <PhotoUpload
                   value={docAvatar}
-                  onChange={e => setDocAvatar(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full p-2.5 rounded-xl border border-slate-300"
+                  onChange={setDocAvatar}
+                  label="Profile Photo Avatar"
+                  type="avatar"
                 />
               </div>
 
@@ -860,6 +941,336 @@ export const AdminPortal: React.FC = () => {
         </div>
       )}
 
+      {/* Tab: Hospitals Management */}
+      {activeTab === 'hospitals' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Add Hospital Form */}
+          <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <h2 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-red-600" />
+              Add Hospital / Clinic Center
+            </h2>
+
+            {hospError && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-xl">
+                {hospError}
+              </div>
+            )}
+            {hospAddedSuccess && (
+              <div className="p-3 bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold rounded-xl">
+                ✓ Hospital added successfully to network!
+              </div>
+            )}
+
+            <form onSubmit={handleAddHospitalSubmit} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Hospital Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={hospName}
+                  onChange={e => setHospName(e.target.value)}
+                  placeholder="e.g. St. Jude Heart Institute"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 bg-slate-55 focus:outline-none focus:border-red-600"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Official Address</label>
+                <input
+                  type="text"
+                  value={hospAddress}
+                  onChange={e => setHospAddress(e.target.value)}
+                  placeholder="e.g. 101 Medical Dr"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 bg-slate-55 focus:outline-none focus:border-red-600"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Phone</label>
+                  <input
+                    type="text"
+                    value={hospPhone}
+                    onChange={e => setHospPhone(e.target.value)}
+                    placeholder="+1..."
+                    className="w-full p-2.5 rounded-xl border border-slate-300 bg-slate-55 focus:outline-none focus:border-red-600"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={hospEmail}
+                    onChange={e => setHospEmail(e.target.value)}
+                    placeholder="contact@..."
+                    className="w-full p-2.5 rounded-xl border border-slate-300 bg-slate-55 focus:outline-none focus:border-red-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Bio / Slogan</label>
+                <textarea
+                  rows={2}
+                  value={hospBio}
+                  onChange={e => setHospBio(e.target.value)}
+                  placeholder="Specialties, facilities..."
+                  className="w-full p-2.5 rounded-xl border border-slate-300 bg-slate-55 focus:outline-none focus:border-red-600 resize-none"
+                />
+              </div>
+
+              <div>
+                <PhotoUpload
+                  value={hospImage}
+                  onChange={setHospImage}
+                  label="Hospital Image Photo"
+                  type="hospital"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Admin Username *</label>
+                  <input
+                    type="text"
+                    required
+                    value={hospUsername}
+                    onChange={e => setHospUsername(e.target.value)}
+                    placeholder="Username"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 bg-slate-55 focus:outline-none focus:border-red-600"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Admin Password *</label>
+                  <input
+                    type="password"
+                    required
+                    value={hospPassword}
+                    onChange={e => setHospPassword(e.target.value)}
+                    placeholder="Password"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 bg-slate-55 focus:outline-none focus:border-red-600"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                id="admin-add-hospital-btn"
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-2xl shadow transition-all cursor-pointer mt-2"
+              >
+                Add Hospital to Network
+              </button>
+            </form>
+          </div>
+
+          {/* Hospitals List */}
+          <div className="lg:col-span-7 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <h2 className="font-extrabold text-base text-slate-900 flex items-center gap-1.5">
+                <span>Hospital Registries</span>
+                <span className="text-[10px] bg-red-100 text-red-800 font-black px-2 py-0.5 rounded-full uppercase">
+                  {hospitals ? hospitals.length : 0} Total
+                </span>
+              </h2>
+
+              {/* Status Tabs */}
+              <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setHospStatusTab('pending')}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    hospStatusTab === 'pending'
+                      ? 'bg-red-600 text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Pending ({hospitals.filter(h => h.approvalStatus === 'pending').length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHospStatusTab('approved')}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    hospStatusTab === 'approved'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Approved ({hospitals.filter(h => h.approvalStatus === 'approved' || !h.approvalStatus).length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHospStatusTab('rejected')}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    hospStatusTab === 'rejected'
+                      ? 'bg-red-600 text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Rejected ({hospitals.filter(h => h.approvalStatus === 'rejected').length})
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-1">
+              {(() => {
+                const filteredHospList = hospitals.filter(h => {
+                  if (hospStatusTab === 'pending') return h.approvalStatus === 'pending';
+                  if (hospStatusTab === 'rejected') return h.approvalStatus === 'rejected';
+                  return h.approvalStatus === 'approved' || !h.approvalStatus;
+                });
+
+                if (filteredHospList.length === 0) {
+                  return (
+                    <div className="p-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-slate-400 font-medium text-xs">
+                      No clinical center records found in this category.
+                    </div>
+                  );
+                }
+
+                return filteredHospList.map(h => {
+                  const registeredDoctors = doctors.filter(
+                    d => d.hospitalId === h.id || d.hospital.toLowerCase() === h.name.toLowerCase()
+                  );
+                  const isActive = h.isActive !== false;
+
+                  const handleToggleActive = () => {
+                    editHospital({
+                      ...h,
+                      isActive: !isActive
+                    });
+                  };
+
+                  const handleApprove = () => {
+                    editHospital({
+                      ...h,
+                      approvalStatus: 'approved'
+                    });
+                  };
+
+                  const handleReject = () => {
+                    editHospital({
+                      ...h,
+                      approvalStatus: 'rejected'
+                    });
+                  };
+
+                  return (
+                    <div key={h.id} className="p-4 bg-slate-50/50 rounded-2xl border border-slate-200 text-xs flex flex-col gap-3">
+                      <div className="flex flex-col md:flex-row gap-4 items-start justify-between">
+                        <div className="flex gap-3 items-start">
+                          <img 
+                            src={h.image} 
+                            alt={h.name} 
+                            className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0 mt-1"
+                          />
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <h4 className="font-extrabold text-sm text-slate-900">{h.name}</h4>
+                              {h.approvalStatus === 'pending' && (
+                                <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wider animate-pulse">Pending Admin Approval</span>
+                              )}
+                              {h.approvalStatus === 'rejected' && (
+                                <span className="bg-red-100 text-red-800 text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wider">Rejected</span>
+                              )}
+                            </div>
+                            <p className="text-[10px] font-bold text-blue-700">{h.address}</p>
+                            <p className="text-[10px] text-slate-500">{h.bio}</p>
+                            <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-slate-600 font-semibold pt-1">
+                              <span>Phone: {h.phone}</span>
+                              <span>•</span>
+                              <span>Email: {h.email}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-slate-400 font-medium pt-1">
+                              <span>User: <strong className="text-slate-600 font-semibold">{h.username || 'N/A'}</strong></span>
+                              <span>•</span>
+                              <span>Pass: <strong className="text-slate-600 font-semibold">{h.password || 'N/A'}</strong></span>
+                            </div>
+                            <div className="pt-2">
+                              <span className="bg-red-50 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded border border-red-100">
+                                {registeredDoctors.length} Specialists Registered
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 self-end md:self-start shrink-0">
+                          {h.approvalStatus === 'pending' ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={handleApprove}
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-[10px] uppercase cursor-pointer shadow-xs"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleReject}
+                                className="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-xl font-bold text-[10px] uppercase cursor-pointer"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          ) : h.approvalStatus === 'rejected' ? (
+                            <button
+                              type="button"
+                              onClick={handleApprove}
+                              className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-xl font-bold text-[10px] uppercase cursor-pointer"
+                            >
+                              Approve
+                            </button>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                onClick={handleToggleActive}
+                                className={`px-2.5 py-1.5 rounded-xl font-bold text-[10px] uppercase border transition-colors cursor-pointer ${
+                                  isActive 
+                                    ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' 
+                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                }`}
+                              >
+                                {isActive ? 'Deactivate' : 'Activate'}
+                              </button>
+                            </>
+                          )}
+
+                          <button
+                            type="button"
+                            id={`admin-delete-hospital-${h.id}`}
+                            onClick={() => {
+                              if (confirm(`Are you sure you want to remove hospital ${h.name}? This will remove their admin access but preserve doctors they added.`)) {
+                                deleteHospital(h.id);
+                              }
+                            }}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
+                            title="Delete Hospital"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {(!h.approvalStatus || h.approvalStatus === 'approved') && (
+                        <div className="flex items-center gap-1.5 pt-1.5 border-t border-slate-100">
+                          <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
+                          <span className={`font-bold text-[10px] uppercase ${isActive ? 'text-emerald-700' : 'text-red-700'}`}>
+                            {isActive ? 'Hospital Account Active' : 'HOSPITAL SUSPENDED BY ADMIN'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+
+        </div>
+      )}
+
       {/* Tab 2: Pharmacy Stores & Inventory */}
       {activeTab === 'stores' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -962,6 +1373,15 @@ export const AdminPortal: React.FC = () => {
                 </div>
               </div>
 
+              <div>
+                <PhotoUpload
+                  value={storeImage}
+                  onChange={setStoreImage}
+                  label="Pharmacy/Lab Photo"
+                  type="store"
+                />
+              </div>
+
               <button
                 type="submit"
                 id="save-store-btn"
@@ -1040,111 +1460,223 @@ export const AdminPortal: React.FC = () => {
           </div>
 
           {/* Stores & Medicine List */}
-          <div className="lg:col-span-6 space-y-3">
-            <h2 className="font-extrabold text-slate-900 text-base">
-              Existing Pharmacy Stores ({stores.length})
-            </h2>
+          <div className="lg:col-span-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <h2 className="font-extrabold text-slate-900 text-base flex items-center gap-1.5">
+                <span>Pharmacy & Lab Stores</span>
+                <span className="text-[10px] bg-amber-100 text-amber-800 font-black px-2 py-0.5 rounded-full uppercase">
+                  {stores.length} Total
+                </span>
+              </h2>
+
+              {/* Status Tabs */}
+              <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setStoreStatusTab('pending')}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    storeStatusTab === 'pending'
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Pending ({stores.filter(s => s.approvalStatus === 'pending').length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStoreStatusTab('approved')}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    storeStatusTab === 'approved'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Approved ({stores.filter(s => s.approvalStatus === 'approved' || !s.approvalStatus).length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStoreStatusTab('rejected')}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                    storeStatusTab === 'rejected'
+                      ? 'bg-red-600 text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Rejected ({stores.filter(s => s.approvalStatus === 'rejected').length})
+                </button>
+              </div>
+            </div>
 
             <div className="space-y-3">
-              {stores.map(s => {
-                const isActive = s.isActive !== false;
-                const isEditingPassword = editingStoreId === s.id;
+              {(() => {
+                const filteredStoresList = stores.filter(s => {
+                  if (storeStatusTab === 'pending') return s.approvalStatus === 'pending';
+                  if (storeStatusTab === 'rejected') return s.approvalStatus === 'rejected';
+                  return s.approvalStatus === 'approved' || !s.approvalStatus;
+                });
 
-                const handleToggleActive = () => {
-                  editStore({
-                    ...s,
-                    isActive: !isActive
-                  });
-                };
-
-                const handleSavePassword = () => {
-                  if (!newStorePassword.trim()) return;
-                  editStore({
-                    ...s,
-                    password: newStorePassword.trim()
-                  });
-                  setEditingStoreId(null);
-                  setNewStorePassword('');
-                };
-
-                return (
-                  <div key={s.id} className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm text-xs flex flex-col gap-3">
-                    <div className="flex justify-between items-start gap-4">
-                      <div>
-                        <h4 className="font-extrabold text-slate-900 text-sm">{s.name}</h4>
-                        <p className="text-slate-500 mt-0.5">{s.address} • License: {s.licenseNumber}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[10px] text-slate-400">User: <strong className="text-slate-600 font-semibold">{s.username || 'N/A'}</strong></span>
-                          <span className="text-slate-300">•</span>
-                          <span className="text-[10px] text-slate-400">Pass: <strong className="text-slate-600 font-semibold">{s.password || 'N/A'}</strong></span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          onClick={handleToggleActive}
-                          className={`px-2 py-1 rounded-lg font-bold text-[10px] uppercase border transition-colors ${
-                            isActive 
-                              ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' 
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                          }`}
-                        >
-                          {isActive ? 'Deactivate' : 'Activate'}
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (isEditingPassword) {
-                              setEditingStoreId(null);
-                            } else {
-                              setEditingStoreId(s.id);
-                              setNewStorePassword(s.password || '');
-                            }
-                          }}
-                          className="px-2 py-1 bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold text-[10px] uppercase"
-                        >
-                          Password
-                        </button>
-                      </div>
+                if (filteredStoresList.length === 0) {
+                  return (
+                    <div className="p-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-slate-400 font-medium text-xs">
+                      No pharmacy or diagnostic labs found in this category.
                     </div>
+                  );
+                }
 
-                    <div className="flex items-center gap-1.5 pt-1">
-                      <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
-                      <span className={`font-bold text-[10px] uppercase ${isActive ? 'text-emerald-700' : 'text-red-700'}`}>
-                        {isActive ? 'Pharmacy Store Active' : 'DEACTIVATED BY ADMIN'}
-                      </span>
-                    </div>
+                return filteredStoresList.map(s => {
+                  const isActive = s.isActive !== false;
+                  const isEditingPassword = editingStoreId === s.id;
 
-                    {isEditingPassword && (
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2 mt-1">
-                        <div className="flex-1">
-                          <label className="block text-[10px] font-bold text-slate-500 mb-0.5">New Password</label>
-                          <input
-                            type="text"
-                            value={newStorePassword}
-                            onChange={e => setNewStorePassword(e.target.value)}
-                            placeholder="Store password"
-                            className="w-full p-2 bg-white rounded-lg border border-slate-300 font-bold"
-                          />
+                  const handleToggleActive = () => {
+                    editStore({
+                      ...s,
+                      isActive: !isActive
+                    });
+                  };
+
+                  const handleSavePassword = () => {
+                    if (!newStorePassword.trim()) return;
+                    editStore({
+                      ...s,
+                      password: newStorePassword.trim()
+                    });
+                    setEditingStoreId(null);
+                    setNewStorePassword('');
+                  };
+
+                  const handleApprove = () => {
+                    editStore({
+                      ...s,
+                      approvalStatus: 'approved'
+                    });
+                  };
+
+                  const handleReject = () => {
+                    editStore({
+                      ...s,
+                      approvalStatus: 'rejected'
+                    });
+                  };
+
+                  return (
+                    <div key={s.id} className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm text-xs flex flex-col gap-3">
+                      <div className="flex justify-between items-start gap-4">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <h4 className="font-extrabold text-slate-900 text-sm">{s.name}</h4>
+                            {s.approvalStatus === 'pending' && (
+                              <span className="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wider animate-pulse">Pending Admin Approval</span>
+                            )}
+                            {s.approvalStatus === 'rejected' && (
+                              <span className="bg-red-100 text-red-800 text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wider">Rejected</span>
+                            )}
+                          </div>
+                          <p className="text-slate-500 mt-0.5">{s.address} • License: {s.licenseNumber}</p>
+                          <p className="text-[10px] text-blue-700 font-semibold">Delivery Time: {s.deliveryTime || 'N/A'}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] text-slate-400">User: <strong className="text-slate-600 font-semibold">{s.username || 'N/A'}</strong></span>
+                            <span className="text-slate-300">•</span>
+                            <span className="text-[10px] text-slate-400">Pass: <strong className="text-slate-600 font-semibold">{s.password || 'N/A'}</strong></span>
+                          </div>
                         </div>
-                        <div className="flex items-end gap-1 mt-4">
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          {s.approvalStatus === 'pending' ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={handleApprove}
+                                className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[10px] uppercase cursor-pointer"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleReject}
+                                className="px-2 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg font-bold text-[10px] uppercase cursor-pointer"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          ) : s.approvalStatus === 'rejected' ? (
+                            <button
+                              type="button"
+                              onClick={handleApprove}
+                              className="px-2 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg font-bold text-[10px] uppercase cursor-pointer"
+                            >
+                              Approve
+                            </button>
+                          ) : (
+                            <>
+                              <button
+                                onClick={handleToggleActive}
+                                className={`px-2 py-1 rounded-lg font-bold text-[10px] uppercase border transition-colors cursor-pointer ${
+                                  isActive 
+                                    ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' 
+                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                }`}
+                              >
+                                {isActive ? 'Deactivate' : 'Activate'}
+                              </button>
+                            </>
+                          )}
                           <button
-                            onClick={handleSavePassword}
-                            className="px-3 py-2 bg-amber-600 text-white hover:bg-amber-700 font-bold rounded-lg text-[10px] uppercase"
+                            onClick={() => {
+                              if (isEditingPassword) {
+                                setEditingStoreId(null);
+                              } else {
+                                setEditingStoreId(s.id);
+                                setNewStorePassword(s.password || '');
+                              }
+                            }}
+                            className="px-2 py-1 bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 rounded-lg font-bold text-[10px] uppercase cursor-pointer"
                           >
-                            Save
-                          </button>
-                          <button
-                            onClick={() => setEditingStoreId(null)}
-                            className="px-2 py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded-lg text-[10px] uppercase text-slate-700"
-                          >
-                            Cancel
+                            Password
                           </button>
                         </div>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
+
+                      {(!s.approvalStatus || s.approvalStatus === 'approved') && (
+                        <div className="flex items-center gap-1.5 pt-1.5 border-t border-slate-100">
+                          <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-red-500 animate-pulse'}`} />
+                          <span className={`font-bold text-[10px] uppercase ${isActive ? 'text-emerald-700' : 'text-red-700'}`}>
+                            {isActive ? 'Pharmacy Store Active' : 'DEACTIVATED BY ADMIN'}
+                          </span>
+                        </div>
+                      )}
+
+                      {isEditingPassword && (
+                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2 mt-1">
+                          <div className="flex-1">
+                            <label className="block text-[10px] font-bold text-slate-500 mb-0.5">New Password</label>
+                            <input
+                              type="text"
+                              value={newStorePassword}
+                              onChange={e => setNewStorePassword(e.target.value)}
+                              placeholder="Store password"
+                              className="w-full p-2 bg-white rounded-lg border border-slate-300 font-bold"
+                            />
+                          </div>
+                          <div className="flex items-end gap-1 mt-4">
+                            <button
+                              onClick={handleSavePassword}
+                              className="px-3 py-2 bg-amber-600 text-white hover:bg-amber-700 font-bold rounded-lg text-[10px] uppercase cursor-pointer"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => setEditingStoreId(null)}
+                              className="px-2 py-2 bg-slate-200 hover:bg-slate-300 font-bold rounded-lg text-[10px] uppercase text-slate-700 cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
 
@@ -1329,6 +1861,218 @@ export const AdminPortal: React.FC = () => {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Tab 8: Laboratories Management */}
+      {activeTab === 'labs' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Add Laboratory Form */}
+          <div className="lg:col-span-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 h-fit">
+            <h2 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
+              <Beaker className="w-5 h-5 text-red-600" />
+              Direct Add Diagnostic Lab
+            </h2>
+            <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+              Manually register and instantly authorize a clinical diagnostic or imaging facility without the standard review queue.
+            </p>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const form = e.currentTarget;
+              const formData = new FormData(form);
+              
+              const name = formData.get('labName') as string;
+              const licenseNumber = formData.get('labLicense') as string;
+              const phone = formData.get('labPhone') as string;
+              const address = formData.get('labAddress') as string;
+              const username = formData.get('labUsername') as string;
+              const password = formData.get('labPassword') as string;
+
+              if (!name || !licenseNumber || !phone || !address || !username || !password) {
+                alert('Please fill out all laboratory registration inputs.');
+                return;
+              }
+
+              addLab({
+                name,
+                licenseNumber,
+                phone,
+                address,
+                username: username.toLowerCase().trim(),
+                password,
+                image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=500&auto=format&fit=crop&q=80',
+                isActive: true,
+                approvalStatus: 'approved'
+              });
+
+              form.reset();
+              alert('Laboratory registered and authorized successfully!');
+            }} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">Center Name *</label>
+                <input
+                  name="labName"
+                  type="text"
+                  required
+                  placeholder="e.g. Apex Diagnostics"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">Medical License ID *</label>
+                <input
+                  name="labLicense"
+                  type="text"
+                  required
+                  placeholder="e.g. LAB-2026-9088"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">Center Contact Phone *</label>
+                <input
+                  name="labPhone"
+                  type="text"
+                  required
+                  placeholder="e.g. +1 (555) 293-8099"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">Full Facility Address *</label>
+                <input
+                  name="labAddress"
+                  type="text"
+                  required
+                  placeholder="e.g. 708 Medical Ave, Plaza B"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Portal Username *</label>
+                  <input
+                    name="labUsername"
+                    type="text"
+                    required
+                    placeholder="e.g. apex"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 font-bold mb-1">Secure Password *</label>
+                  <input
+                    name="labPassword"
+                    type="password"
+                    required
+                    placeholder="Password"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-red-600"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-xl shadow transition-colors"
+              >
+                Create & Authorize Lab
+              </button>
+            </form>
+          </div>
+
+          {/* Manage Registered Laboratories */}
+          <div className="lg:col-span-8 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <h2 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-red-600" />
+              Registered Diagnostic Lab Partners ({labs ? labs.length : 0})
+            </h2>
+
+            <div className="space-y-4">
+              {!labs || labs.length === 0 ? (
+                <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-slate-400">
+                  <Beaker className="w-12 h-12 mx-auto mb-2 text-slate-300" />
+                  <p className="text-xs font-bold text-slate-600">No partner labs registered yet.</p>
+                </div>
+              ) : (
+                labs.map(lab => {
+                  const isApproved = lab.approvalStatus === 'approved';
+                  
+                  return (
+                    <div key={lab.id} className="p-4 rounded-2xl border border-slate-100 bg-slate-50/40 flex flex-col sm:flex-row justify-between sm:items-center gap-4 hover:border-slate-200 transition-colors">
+                      <div className="flex items-start gap-4">
+                        <img
+                          src={lab.image}
+                          alt={lab.name}
+                          className="w-12 h-12 rounded-xl object-cover shrink-0 border border-slate-200/60"
+                          referrerPolicy="no-referrer"
+                        />
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-extrabold text-xs text-slate-800">{lab.name}</h4>
+                            <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                              isApproved ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800 animate-pulse'
+                            }`}>
+                              {lab.approvalStatus || 'PENDING'}
+                            </span>
+                          </div>
+                          
+                          <p className="text-[11px] text-slate-500 font-medium">
+                            📍 {lab.address} | 📞 {lab.phone}
+                          </p>
+                          <p className="text-[10px] text-slate-400 font-bold">
+                            License No: <span className="font-mono text-slate-600">{lab.licenseNumber}</span> | Username: <span className="text-slate-600 font-semibold">{lab.username}</span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 self-end sm:self-center">
+                        {!isApproved ? (
+                          <button
+                            onClick={() => {
+                              editLab({ ...lab, approvalStatus: 'approved' });
+                              alert(`${lab.name} approved successfully!`);
+                            }}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] uppercase px-3 py-1.5 rounded-lg transition-colors"
+                          >
+                            Approve Lab
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              editLab({ ...lab, approvalStatus: 'pending' });
+                              alert(`${lab.name} access set to pending review.`);
+                            }}
+                            className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] uppercase px-3 py-1.5 rounded-lg transition-colors"
+                          >
+                            Set Pending
+                          </button>
+                        )}
+                        
+                        <button
+                          onClick={() => {
+                            if (confirm(`Are you absolutely sure you want to delete and permanently revoke access for ${lab.name}?`)) {
+                              deleteLab(lab.id);
+                            }
+                          }}
+                          className="p-1.5 hover:bg-red-50 text-red-600 hover:text-red-700 rounded-lg transition-colors"
+                          title="Revoke and Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
         </div>
       )}
 

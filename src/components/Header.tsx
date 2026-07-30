@@ -49,6 +49,7 @@ export const Header: React.FC = () => {
       case 'landing': return t('portalLanding');
       case 'patient': return t('portalPatient');
       case 'doctor': return t('portalDoctor');
+      case 'hospital': return t('portalHospital');
       case 'pharmacy': return t('portalPharmacy');
       case 'admin': return t('portalAdmin');
       default: return 'Portal';
@@ -98,7 +99,7 @@ export const Header: React.FC = () => {
               {t('portals')}
             </span>
             <span className="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded uppercase hidden md:inline-block">
-              5
+              6
             </span>
           </button>
 

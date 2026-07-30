@@ -11,14 +11,18 @@ import {
   HomeSampleRequest,
   MedicineOrder,
   Notification,
-  UploadedMedicalDoc
+  UploadedMedicalDoc,
+  Hospital,
+  DiagnosticLab
 } from '../types';
 import {
   initialDoctors,
   initialStores,
   initialMedicines,
   initialNotifications,
-  initialAppointments
+  initialAppointments,
+  initialHospitals,
+  initialLabs
 } from '../data/initialData';
 import { translations } from '../i18n/translations';
 
@@ -34,6 +38,12 @@ interface AppContextType {
   addDoctor: (doc: Omit<Doctor, 'id' | 'rating' | 'reviewCount'>) => void;
   editDoctor: (doc: Doctor) => void;
   deleteDoctor: (id: string) => void;
+
+  // Hospitals
+  hospitals: Hospital[];
+  addHospital: (hosp: Omit<Hospital, 'id' | 'rating'>) => void;
+  editHospital: (hosp: Hospital) => void;
+  deleteHospital: (id: string) => void;
 
   // Stores & Medicines
   stores: PharmacyStore[];
@@ -61,6 +71,13 @@ interface AppContextType {
   sampleRequests: HomeSampleRequest[];
   requestHomeSample: (sample: Omit<HomeSampleRequest, 'id' | 'createdAt' | 'status'>) => Promise<HomeSampleRequest>;
   updateSampleStatus: (id: string, status: HomeSampleRequest['status'], technicianName?: string, technicianPhone?: string) => void;
+  shareLabReport: (requestId: string, reportPdfUrl: string, reportPdfName: string, reportComments: string) => void;
+
+  // Diagnostic Labs
+  labs: DiagnosticLab[];
+  addLab: (lab: Omit<DiagnosticLab, 'id' | 'rating'>) => void;
+  editLab: (lab: DiagnosticLab) => void;
+  deleteLab: (id: string) => void;
 
   // Uploaded Documents
   uploadedDocs: UploadedMedicalDoc[];
@@ -108,6 +125,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return initialDoctors;
   });
 
+  const [hospitals, setHospitals] = useState<Hospital[]>(() => {
+    const stored = localStorage.getItem('aily_hospitals');
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        console.error('Error parsing stored hospitals', e);
+      }
+    }
+    return initialHospitals;
+  });
+
   const [stores, setStores] = useState<PharmacyStore[]>(() => {
     const stored = localStorage.getItem('aily_stores');
     if (stored) {
@@ -120,17 +149,52 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return initialStores;
   });
 
+  const [labs, setLabs] = useState<DiagnosticLab[]>(() => {
+    const stored = localStorage.getItem('aily_labs');
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        console.error('Error parsing stored labs', e);
+      }
+    }
+    return initialLabs;
+  });
+
   useEffect(() => {
     localStorage.setItem('aily_doctors', JSON.stringify(doctors));
   }, [doctors]);
 
   useEffect(() => {
+    localStorage.setItem('aily_hospitals', JSON.stringify(hospitals));
+  }, [hospitals]);
+
+  useEffect(() => {
     localStorage.setItem('aily_stores', JSON.stringify(stores));
   }, [stores]);
 
+  useEffect(() => {
+    localStorage.setItem('aily_labs', JSON.stringify(labs));
+  }, [labs]);
+
   const [medicines, setMedicines] = useState<MedicineItem[]>(initialMedicines);
   const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
-  const [sampleRequests, setSampleRequests] = useState<HomeSampleRequest[]>([]);
+  
+  const [sampleRequests, setSampleRequests] = useState<HomeSampleRequest[]>(() => {
+    const stored = localStorage.getItem('aily_sample_requests');
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        console.error('Error parsing stored sample requests', e);
+      }
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('aily_sample_requests', JSON.stringify(sampleRequests));
+  }, [sampleRequests]);
   const [orders, setOrders] = useState<MedicineOrder[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
@@ -171,8 +235,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setPortalState('patient');
     } else if (cleanPath === 'doctor') {
       setPortalState('doctor');
+    } else if (cleanPath === 'hospital') {
+      setPortalState('hospital');
     } else if (cleanPath === 'pharmacy') {
       setPortalState('pharmacy');
+    } else if (cleanPath === 'lab') {
+      setPortalState('lab');
     } else if (cleanPath === '' || cleanPath === 'landing') {
       setPortalState('landing');
     }
@@ -191,7 +259,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     let targetPath = '/';
     if (p === 'patient') targetPath = '/patient';
     else if (p === 'doctor') targetPath = '/doctor';
+    else if (p === 'hospital') targetPath = '/hospital';
     else if (p === 'pharmacy') targetPath = '/pharmacy';
+    else if (p === 'lab') targetPath = '/lab';
     else if (p === 'admin') {
       const rawStoredPath = localStorage.getItem('admin_secret_path') || 'admin-gate-suk2h2ai';
       const cleanSecret = rawStoredPath.trim().toLowerCase().replace(/^#\/?/, '').replace(/^\//, '');
@@ -250,22 +320,68 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setDoctors(prev => prev.filter(d => d.id !== id));
   };
 
+  // Hospital CRUD
+  const addHospital = (hospData: Omit<Hospital, 'id' | 'rating'>) => {
+    const newHosp: Hospital = {
+      ...hospData,
+      id: `hosp-${Date.now()}`,
+      rating: 5.0,
+      isActive: true,
+      approvalStatus: (hospData as any).approvalStatus || 'approved'
+    };
+    setHospitals(prev => [newHosp, ...prev]);
+
+    if (newHosp.approvalStatus === 'approved') {
+      addNotification({
+        title: '🏥 New Hospital Registered',
+        message: `${newHosp.name} has joined the Medicare Plus network!`,
+        type: 'system',
+        targetPortal: 'landing'
+      });
+    } else {
+      addNotification({
+        title: '🏥 Hospital Sign-up Pending',
+        message: `${newHosp.name} has submitted a clinical center registration. Waiting for admin approval.`,
+        type: 'system',
+        targetPortal: 'admin'
+      });
+    }
+  };
+
+  const editHospital = (updatedHosp: Hospital) => {
+    setHospitals(prev => prev.map(h => h.id === updatedHosp.id ? updatedHosp : h));
+  };
+
+  const deleteHospital = (id: string) => {
+    setHospitals(prev => prev.filter(h => h.id !== id));
+  };
+
   // Pharmacy Stores CRUD (Admin)
   const addStore = (storeData: Omit<PharmacyStore, 'id' | 'rating' | 'isPartnerStore'>) => {
     const newStore: PharmacyStore = {
       ...storeData,
       id: `store-${Date.now()}`,
       rating: 5.0,
-      isPartnerStore: true
+      isPartnerStore: true,
+      approvalStatus: (storeData as any).approvalStatus || 'approved'
     };
     setStores(prev => [...prev, newStore]);
 
-    addNotification({
-      title: '🏪 New Pharmacy Store Added',
-      message: `${newStore.name} added to pharmacy portal for medicine ordering.`,
-      type: 'system',
-      targetPortal: 'pharmacy'
-    });
+    if (newStore.approvalStatus === 'approved') {
+      addNotification({
+        title: '🏪 New Pharmacy Store Added',
+        message: `${newStore.name} added to pharmacy portal for medicine ordering.`,
+        type: 'system',
+        targetPortal: 'pharmacy'
+      });
+    } else {
+      addNotification({
+        title: '🏪 Pharmacy Registration Pending',
+        message: `${newStore.name} has submitted a partner store application. Waiting for admin approval.`,
+        type: 'system',
+        targetPortal: 'admin'
+      });
+    }
   };
 
   const editStore = (updatedStore: PharmacyStore) => {
@@ -461,6 +577,76 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     });
   };
 
+  const shareLabReport = (
+    requestId: string,
+    reportPdfUrl: string,
+    reportPdfName: string,
+    reportComments: string
+  ) => {
+    setSampleRequests(prev => prev.map(s => {
+      if (s.id === requestId) {
+        return {
+          ...s,
+          status: 'report-ready',
+          reportPdfUrl,
+          reportPdfName,
+          reportComments
+        };
+      }
+      return s;
+    }));
+
+    // Trigger document upload for patient's hub automatically
+    uploadDocument({
+      name: reportPdfName || `Lab_Report_${requestId}.pdf`,
+      fileType: 'lab_report',
+      url: reportPdfUrl,
+      size: '1.4 MB'
+    });
+
+    addNotification({
+      title: '🩸 Diagnostic Lab Report Ready',
+      message: `Your medical lab test report for Request #${requestId} is ready! You can now view and download it directly from your Patient Hub.`,
+      type: 'sample',
+      targetPortal: 'patient'
+    });
+  };
+
+  const addLab = (labData: Omit<DiagnosticLab, 'id' | 'rating'>) => {
+    const newLab: DiagnosticLab = {
+      ...labData,
+      id: `lab-${Date.now()}`,
+      rating: 5.0,
+      isActive: true,
+      approvalStatus: labData.approvalStatus || 'approved'
+    };
+    setLabs(prev => [newLab, ...prev]);
+
+    if (newLab.approvalStatus === 'approved') {
+      addNotification({
+        title: '🔬 Diagnostic Center Added',
+        message: `${newLab.name} is now approved and integrated into the home sample collection service!`,
+        type: 'system',
+        targetPortal: 'patient'
+      });
+    } else {
+      addNotification({
+        title: '🔬 Diagnostic Center Registration',
+        message: `${newLab.name} has registered and is pending administrator review and activation.`,
+        type: 'system',
+        targetPortal: 'admin'
+      });
+    }
+  };
+
+  const editLab = (updatedLab: DiagnosticLab) => {
+    setLabs(prev => prev.map(l => l.id === updatedLab.id ? updatedLab : l));
+  };
+
+  const deleteLab = (id: string) => {
+    setLabs(prev => prev.filter(l => l.id !== id));
+  };
+
   // Document management
   const uploadDocument = (docData: Omit<UploadedMedicalDoc, 'id' | 'uploadDate'>) => {
     const newDoc: UploadedMedicalDoc = {
@@ -512,6 +698,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addDoctor,
       editDoctor,
       deleteDoctor,
+      hospitals,
+      addHospital,
+      editHospital,
+      deleteHospital,
       stores,
       addStore,
       editStore,
@@ -531,6 +721,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       sampleRequests,
       requestHomeSample,
       updateSampleStatus,
+      shareLabReport,
+      labs,
+      addLab,
+      editLab,
+      deleteLab,
       uploadedDocs,
       uploadDocument,
       notifications,

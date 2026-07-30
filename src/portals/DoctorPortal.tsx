@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { VideoCallModal } from '../components/VideoCallModal';
+import { PhotoUpload } from '../components/PhotoUpload';
 import { Appointment } from '../types';
 import { 
   Stethoscope, 
@@ -438,13 +439,12 @@ export const DoctorPortal: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Avatar Photo URL</label>
-                <input
-                  type="text"
+              <div className="sm:col-span-2">
+                <PhotoUpload
                   value={regAvatar}
-                  onChange={e => setRegAvatar(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                  onChange={setRegAvatar}
+                  label="Upload Profile Photo"
+                  type="avatar"
                 />
               </div>
 

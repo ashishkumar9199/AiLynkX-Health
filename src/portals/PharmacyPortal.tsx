@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { PhotoUpload } from '../components/PhotoUpload';
 import { MedicineItem } from '../types';
 import { 
   Pill, 
@@ -43,6 +44,7 @@ export const PharmacyPortal: React.FC = () => {
     sampleRequests,
     updateSampleStatus,
     editStore,
+    addStore,
     addMedicine,
     t 
   } = useApp();
@@ -58,6 +60,18 @@ export const PharmacyPortal: React.FC = () => {
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
+
+  // Partner Sign Up States
+  const [partnerAuthView, setPartnerAuthView] = useState<'signin' | 'signup'>('signin');
+  const [signupStoreName, setSignupStoreName] = useState('');
+  const [signupStoreAddress, setSignupStoreAddress] = useState('');
+  const [signupStorePhone, setSignupStorePhone] = useState('');
+  const [signupStoreLicense, setSignupStoreLicense] = useState('');
+  const [signupStoreUsername, setSignupStoreUsername] = useState('');
+  const [signupStorePassword, setSignupStorePassword] = useState('');
+  const [signupStoreImage, setSignupStoreImage] = useState('https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&auto=format&fit=crop&q=80');
+  const [partnerSignupSuccess, setPartnerSignupSuccess] = useState('');
+  const [partnerSignupError, setPartnerSignupError] = useState('');
 
   // Partner Password Change State
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -176,6 +190,57 @@ export const PharmacyPortal: React.FC = () => {
     localStorage.setItem('logged_in_store_id', foundStore.id);
     setUsernameInput('');
     setPasswordInput('');
+  };
+
+  // Partner Sign Up
+  const handlePartnerSignup = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPartnerSignupError('');
+    setPartnerSignupSuccess('');
+
+    if (!signupStoreName.trim() || !signupStoreAddress.trim() || !signupStorePhone.trim() || !signupStoreLicense.trim() || !signupStoreUsername.trim() || !signupStorePassword.trim()) {
+      setPartnerSignupError('All fields marked with * are required.');
+      return;
+    }
+
+    const usernameTaken = stores.some(s => s.username?.toLowerCase() === signupStoreUsername.trim().toLowerCase());
+    if (usernameTaken) {
+      setPartnerSignupError('This username is already taken. Please choose another.');
+      return;
+    }
+
+    const newStoreObj = {
+      name: signupStoreName.trim(),
+      address: signupStoreAddress.trim(),
+      phone: signupStorePhone.trim(),
+      licenseNumber: signupStoreLicense.trim(),
+      username: signupStoreUsername.trim().toLowerCase(),
+      password: signupStorePassword,
+      image: signupStoreImage.trim() || 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&auto=format&fit=crop&q=80',
+      isActive: true,
+      approvalStatus: 'pending' as const
+    };
+
+    addStore(newStoreObj);
+
+    setPartnerSignupSuccess('Pharmacy & Diagnostics Store registered successfully! Your registration is now pending administrator approval. Please wait for the platform coordinator to activate your partner credentials.');
+
+    // Pre-fill login credentials
+    setUsernameInput(newStoreObj.username);
+    setPasswordInput(newStoreObj.password);
+
+    // Reset fields
+    setSignupStoreName('');
+    setSignupStoreAddress('');
+    setSignupStorePhone('');
+    setSignupStoreLicense('');
+    setSignupStoreUsername('');
+    setSignupStorePassword('');
+
+    setTimeout(() => {
+      setPartnerAuthView('signin');
+      setPartnerSignupSuccess('');
+    }, 6000);
   };
 
   // Partner Log Out
@@ -581,70 +646,298 @@ export const PharmacyPortal: React.FC = () => {
       {/* RENDER VIEW 2: PARTNER PHARMACY & LAB SECURE DASHBOARD */}
       {viewMode === 'partner' && (
         <>
-          {/* RENDER 2A: LOGIN FORM IF NOT AUTHENTICATED */}
-          {(!currentStore || currentStore.isActive === false) ? (
-            <div className="max-w-md mx-auto my-6 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6">
+          {/* RENDER 2A: LOGIN / SIGNUP FORM IF NOT AUTHENTICATED */}
+          {(!loggedInStoreId || !currentStore) ? (
+            <div className="max-w-xl mx-auto my-6 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6 animate-in fade-in duration-200">
               <div className="text-center space-y-2">
                 <div className="w-14 h-14 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
                   <Building2 className="w-8 h-8" />
                 </div>
                 <h2 className="text-xl font-black text-slate-900">Partner & Lab Secure Portal</h2>
                 <p className="text-xs text-slate-500 font-medium max-w-xs mx-auto">
-                  Access center for pharmacy stores and medical lab phlebotomists. Log in with the unique ID created by the administrator.
+                  Access center for pharmacy stores and medical lab phlebotomists. Log in with your credentials, or apply to register your store.
                 </p>
               </div>
 
-              {loginError && (
-                <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-800 text-xs font-semibold flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                  <span>{loginError}</span>
+              {/* View Switch Tabs */}
+              <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <button
+                  onClick={() => { setPartnerAuthView('signin'); setLoginError(''); setPartnerSignupError(''); }}
+                  className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${
+                    partnerAuthView === 'signin' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Partner Sign In
+                </button>
+                <button
+                  onClick={() => { setPartnerAuthView('signup'); setLoginError(''); setPartnerSignupError(''); }}
+                  className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${
+                    partnerAuthView === 'signup' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Apply Partner Store
+                </button>
+              </div>
+
+              {partnerAuthView === 'signin' ? (
+                /* Sign In Form */
+                <div className="space-y-4">
+                  {loginError && (
+                    <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-800 text-xs font-semibold flex items-start gap-2.5">
+                      <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                      <span>{loginError}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handlePartnerLogin} className="space-y-4 text-xs">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Partner Username *</label>
+                      <input
+                        type="text"
+                        value={usernameInput}
+                        onChange={e => setUsernameInput(e.target.value)}
+                        placeholder="e.g. medcentral"
+                        className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Store Password *</label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          value={passwordInput}
+                          onChange={e => setPasswordInput(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full p-3 rounded-xl border border-slate-300 font-bold tracking-wider"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-3.5 bg-slate-950 hover:bg-slate-900 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer"
+                    >
+                      Partner Authentication
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                /* Sign Up Form */
+                <div className="space-y-4">
+                  {partnerSignupError && (
+                    <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-800 text-xs font-semibold flex items-start gap-2.5">
+                      <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                      <span>{partnerSignupError}</span>
+                    </div>
+                  )}
+
+                  {partnerSignupSuccess && (
+                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-medium flex items-start gap-2.5 leading-relaxed">
+                      <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                      <span>{partnerSignupSuccess}</span>
+                    </div>
+                  )}
+
+                  <form onSubmit={handlePartnerSignup} className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div className="sm:col-span-2">
+                      <label className="block font-bold text-slate-700 mb-1">Pharmacy / Laboratory Name *</label>
+                      <input
+                        type="text"
+                        value={signupStoreName}
+                        onChange={e => setSignupStoreName(e.target.value)}
+                        placeholder="e.g. HealthShield Diagnostic Labs"
+                        className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                        required
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block font-bold text-slate-700 mb-1">Official Address *</label>
+                      <input
+                        type="text"
+                        value={signupStoreAddress}
+                        onChange={e => setSignupStoreAddress(e.target.value)}
+                        placeholder="e.g. 505 Medical Plaza, Suite B"
+                        className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Store Phone *</label>
+                      <input
+                        type="tel"
+                        value={signupStorePhone}
+                        onChange={e => setSignupStorePhone(e.target.value)}
+                        placeholder="e.g. +1 (800) 555-0199"
+                        className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Medical Store License Number *</label>
+                      <input
+                        type="text"
+                        value={signupStoreLicense}
+                        onChange={e => setSignupStoreLicense(e.target.value)}
+                        placeholder="e.g. PH-2026-X99"
+                        className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Partner Username *</label>
+                      <input
+                        type="text"
+                        value={signupStoreUsername}
+                        onChange={e => setSignupStoreUsername(e.target.value)}
+                        placeholder="Choose username"
+                        className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">Partner Password *</label>
+                      <input
+                        type="password"
+                        value={signupStorePassword}
+                        onChange={e => setSignupStorePassword(e.target.value)}
+                        placeholder="Choose security password"
+                        className="w-full p-3 rounded-xl border border-slate-300 font-medium"
+                        required
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <PhotoUpload
+                        value={signupStoreImage}
+                        onChange={setSignupStoreImage}
+                        label="Upload Pharmacy / Diagnostic Center Photo"
+                        type="store"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2 pt-2">
+                      <button
+                        type="submit"
+                        className="w-full py-3.5 bg-slate-950 hover:bg-slate-900 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer"
+                      >
+                        Submit Registration Application
+                      </button>
+                    </div>
+                  </form>
                 </div>
               )}
 
-              <form onSubmit={handlePartnerLogin} className="space-y-4 text-xs">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Partner Username *</label>
-                  <input
-                    type="text"
-                    value={usernameInput}
-                    onChange={e => setUsernameInput(e.target.value)}
-                    placeholder="e.g. medcentral"
-                    className="w-full p-3 rounded-xl border border-slate-300 font-medium"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Store Password *</label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={passwordInput}
-                      onChange={e => setPasswordInput(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full p-3 rounded-xl border border-slate-300 font-bold tracking-wider"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-3.5 bg-slate-950 hover:bg-slate-900 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all"
-                >
-                  Partner Authentication
-                </button>
-              </form>
-
               <div className="pt-4 border-t border-slate-100 text-center text-[10px] text-slate-400 font-medium">
                 Authorized Lab / Store Access Console • Medicare Partners
+              </div>
+            </div>
+          ) : currentStore.isActive === false ? (
+            <div className="max-w-md mx-auto my-12 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6 text-center text-xs animate-in fade-in duration-200">
+              <div className="w-14 h-14 bg-red-100 text-red-700 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+                <AlertCircle className="w-8 h-8" />
+              </div>
+              <h2 className="text-xl font-black text-slate-900">Partner Access Suspended</h2>
+              <div className="p-4 bg-red-50 border border-red-100 text-red-800 rounded-2xl leading-relaxed text-left">
+                Your partner store and diagnostic lab portal access has been deactivated permanently by the administrator. 
+                If you believe this is an error or wish to appeal the suspension, please contact support.
+              </div>
+              <button
+                onClick={handlePartnerLogout}
+                className="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold uppercase tracking-wider cursor-pointer"
+              >
+                Sign Out Partner
+              </button>
+            </div>
+          ) : currentStore.approvalStatus === 'pending' ? (
+            <div className="max-w-xl mx-auto my-12 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6 text-xs animate-in fade-in duration-200">
+              <div className="text-center space-y-2">
+                <div className="w-14 h-14 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mx-auto shadow-sm animate-pulse">
+                  <Clock className="w-8 h-8" />
+                </div>
+                <h2 className="text-xl font-black text-slate-900">Partner Verification Pending</h2>
+                <span className="inline-block bg-amber-100 text-amber-800 text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  Approval Pending
+                </span>
+                <p className="text-slate-500 font-medium max-w-sm mx-auto">
+                  Hello, Representative of {currentStore.name}. Your details are successfully registered. To list your store and phlebotomist service on Medicare Plus, please wait for platform administrator approval.
+                </p>
+              </div>
+
+              <div className="p-4 bg-amber-50/50 rounded-2xl border border-amber-200/50 space-y-3">
+                <h3 className="font-extrabold text-amber-950 uppercase text-[10px]">Verification Checklist</h3>
+                <ul className="list-disc pl-4 space-y-1.5 text-slate-700">
+                  <li>Store licensing and pharmaceutical distribution certifications.</li>
+                  <li>Official contact numbers check.</li>
+                  <li>Validation of delivery range and lab collection capabilities.</li>
+                </ul>
+              </div>
+
+              <div className="border border-slate-100 p-4 rounded-2xl space-y-2 bg-slate-50 text-[11px]">
+                <span className="font-bold text-slate-500 block uppercase text-[9px]">Submitted Store Details:</span>
+                <div><strong className="text-slate-700 font-bold">Store Name:</strong> {currentStore.name}</div>
+                <div><strong className="text-slate-700 font-bold">Address:</strong> {currentStore.address}</div>
+                <div><strong className="text-slate-700 font-bold">License Number:</strong> {currentStore.licenseNumber}</div>
+                <div><strong className="text-slate-700 font-bold">Contact Phone:</strong> {currentStore.phone}</div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    window.location.reload();
+                  }}
+                  className="flex-1 py-3 bg-slate-950 hover:bg-slate-900 text-white rounded-xl font-bold uppercase tracking-wider cursor-pointer text-center"
+                >
+                  Check Status Now
+                </button>
+                <button
+                  onClick={handlePartnerLogout}
+                  className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold uppercase tracking-wider cursor-pointer"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          ) : currentStore.approvalStatus === 'rejected' ? (
+            <div className="max-w-md mx-auto my-12 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6 text-center text-xs animate-in fade-in duration-200">
+              <div className="w-14 h-14 bg-red-100 text-red-700 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+                <ShieldAlert className="w-8 h-8" />
+              </div>
+              <h2 className="text-xl font-black text-slate-900">Application Rejected</h2>
+              <div className="p-4 bg-red-50 border border-red-100 text-red-800 rounded-2xl leading-relaxed text-left space-y-2">
+                <p className="font-bold text-red-950">Dear Representative of {currentStore.name},</p>
+                <p>
+                  Your pharmaceutical partner application has been rejected by the portal administrator. 
+                  Common reasons include failure to verify medical distributor licensing, missing active phone lines, or mismatching postal address details.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={handlePartnerLogout}
+                  className="flex-1 py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold uppercase tracking-wider cursor-pointer"
+                >
+                  Try signup again
+                </button>
+                <button
+                  onClick={handlePartnerLogout}
+                  className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold uppercase tracking-wider cursor-pointer"
+                >
+                  Sign Out
+                </button>
               </div>
             </div>
           ) : (

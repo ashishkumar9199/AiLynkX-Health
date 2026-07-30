@@ -6,6 +6,7 @@ import {
   Home, 
   User, 
   Stethoscope, 
+  Building2,
   Pill, 
   ShieldCheck, 
   ChevronRight, 
@@ -13,11 +14,12 @@ import {
   PhoneCall,
   PlusCircle,
   FileSearch,
-  CheckCircle2
+  CheckCircle2,
+  Beaker
 } from 'lucide-react';
 
 export const PortalSwitcherDrawer: React.FC = () => {
-  const { portal, setPortal, isPortalDrawerOpen, setIsPortalDrawerOpen, t, doctors, appointments, orders, sampleRequests } = useApp();
+  const { portal, setPortal, isPortalDrawerOpen, setIsPortalDrawerOpen, t, doctors, hospitals, appointments, orders, sampleRequests } = useApp();
 
   if (!isPortalDrawerOpen) return null;
 
@@ -53,11 +55,26 @@ export const PortalSwitcherDrawer: React.FC = () => {
       highlightColor: 'hover:border-emerald-500 hover:bg-emerald-50/50'
     },
     {
+      id: 'hospital',
+      nameKey: 'portalHospital',
+      description: 'Administrative workspace for clinical centers to manage multiple specialist doctors and queue schedules.',
+      icon: <Building2 className="w-5 h-5 text-cyan-600" />,
+      badge: `${hospitals ? hospitals.length : 0} Hospitals Listed`,
+      highlightColor: 'hover:border-cyan-500 hover:bg-cyan-50/50'
+    },
+    {
       id: 'pharmacy',
       nameKey: 'portalPharmacy',
       description: 'Browse stores added by admin, search medicines, upload RX & order for delivery.',
       icon: <Pill className="w-5 h-5 text-amber-600" />,
       highlightColor: 'hover:border-amber-500 hover:bg-amber-50/50'
+    },
+    {
+      id: 'lab',
+      nameKey: 'portalLab',
+      description: 'Access center for pathology labs, diagnostics, phlebotomist assignment, and report uploads.',
+      icon: <Beaker className="w-5 h-5 text-red-600" />,
+      highlightColor: 'hover:border-red-500 hover:bg-red-50/50'
     }
   ];
 

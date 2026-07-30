@@ -1,4 +1,59 @@
-import { Doctor, PharmacyStore, MedicineItem, LabTestOption, Notification, Appointment, HomeSampleRequest, MedicineOrder } from '../types';
+import { Doctor, PharmacyStore, MedicineItem, LabTestOption, Notification, Appointment, HomeSampleRequest, MedicineOrder, Hospital, DiagnosticLab } from '../types';
+
+export const initialHospitals: Hospital[] = [
+  {
+    id: 'hosp-1',
+    name: 'St. Jude Heart Institute & Clinic',
+    address: '450 Medical Arts Plaza, Suite 300',
+    phone: '+1 (555) 111-2222',
+    email: 'admin@stjudeheart.org',
+    username: 'stjude',
+    password: 'password123',
+    image: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=600&auto=format&fit=crop&q=80',
+    isActive: true,
+    bio: 'World-class cardiological care and state-of-the-art heart therapies.',
+    rating: 4.9
+  },
+  {
+    id: 'hosp-2',
+    name: 'Metro Care General Hospital',
+    address: '102 Health Avenue, Block B',
+    phone: '+1 (555) 333-4444',
+    email: 'contact@metrocare.com',
+    username: 'metrocare',
+    password: 'password123',
+    image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&auto=format&fit=crop&q=80',
+    isActive: true,
+    bio: 'Multi-specialty primary care and diabetes management services.',
+    rating: 4.8
+  },
+  {
+    id: 'hosp-3',
+    name: 'DermaClair Skin & Laser Center',
+    address: '88 Beauty Boulevard, 2nd Floor',
+    phone: '+1 (555) 555-6666',
+    email: 'info@dermaclair.com',
+    username: 'dermaclair',
+    password: 'password123',
+    image: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=600&auto=format&fit=crop&q=80',
+    isActive: true,
+    bio: 'Advanced clinical dermatology, cosmetic care, and high-precision lasers.',
+    rating: 4.9
+  },
+  {
+    id: 'hosp-4',
+    name: 'OrthoSpine Joint & Bone Clinic',
+    address: '22 Sport Science Way',
+    phone: '+1 (555) 777-8888',
+    email: 'appointments@orthospine.org',
+    username: 'orthospine',
+    password: 'password123',
+    image: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=600&auto=format&fit=crop&q=80',
+    isActive: true,
+    bio: 'Joint replacement, orthopedic surgery, physical therapy, and skeletal care.',
+    rating: 4.7
+  }
+];
 
 export const initialDoctors: Doctor[] = [
   {
@@ -369,5 +424,34 @@ export const samplePrescriptionTexts = [
   {
     title: "Pediatric Antibiotics & Fever",
     content: "Rx (Patient Age: 6 yrs):\n1. Amoxicillin + Clavulanate Syrup (228mg/5ml) - 5 ml twice daily for 5 days after food\n2. Paracetamol Suspension (250mg/5ml) - 5 ml as needed every 6 hours for fever > 100.5 F\n3. Probiotic Sachet - 1 sachet in lukewarm water daily\nWarning: Complete 5 day antibiotic course. Watch for skin rash."
+  }
+];
+
+export const initialLabs: DiagnosticLab[] = [
+  {
+    id: 'lab-1',
+    name: 'Apex Diagnostic & Imaging Hub',
+    address: '77 Health Boulevard, Sector 4',
+    phone: '+1 (555) 888-0011',
+    licenseNumber: 'LAB-2024-99882',
+    rating: 4.9,
+    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=500&auto=format&fit=crop&q=80',
+    username: 'apexlab',
+    password: 'password123',
+    isActive: true,
+    approvalStatus: 'approved'
+  },
+  {
+    id: 'lab-2',
+    name: 'Precision Pathology Labs',
+    address: '210 Clinic Row, Suite 10',
+    phone: '+1 (555) 888-0022',
+    licenseNumber: 'LAB-2023-77661',
+    rating: 4.8,
+    image: 'https://images.unsplash.com/photo-1579165276513-354f9d3eb7a6?w=500&auto=format&fit=crop&q=80',
+    username: 'precisionpath',
+    password: 'password123',
+    isActive: true,
+    approvalStatus: 'approved'
   }
 ];

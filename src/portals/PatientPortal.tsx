@@ -16,7 +16,8 @@ import {
   Download,
   AlertCircle,
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  User
 } from 'lucide-react';
 
 export const PatientPortal: React.FC = () => {
@@ -285,27 +286,85 @@ export const PatientPortal: React.FC = () => {
                 </button>
               </div>
             ) : (
-              sampleRequests.map(req => (
-                <div key={req.id} className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-blue-900">
-                      Request #{req.id}
-                    </span>
-                    <span className="bg-amber-100 text-amber-800 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border border-amber-200">
-                      {req.status.replace('-', ' ')}
-                    </span>
-                  </div>
+              sampleRequests.map(req => {
+                const isPending = req.status === 'pending';
+                const isAssigned = req.status === 'technician-assigned';
+                const isCollected = req.status === 'sample-collected';
+                const isReady = req.status === 'report-ready';
+                
+                return (
+                  <div key={req.id} className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs text-blue-900">
+                        Request #{req.id}
+                      </span>
+                      <span className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border ${
+                        isPending ? 'bg-amber-100 text-amber-800 border-amber-200' :
+                        isAssigned ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                        isCollected ? 'bg-purple-100 text-purple-800 border-purple-200' :
+                        'bg-emerald-100 text-emerald-800 border-emerald-200'
+                      }`}>
+                        {req.status.replace('-', ' ')}
+                      </span>
+                    </div>
 
-                  <p className="text-xs font-bold text-slate-800">
-                    Tests: {req.selectedTests.join(', ')}
-                  </p>
+                    <p className="text-xs font-bold text-slate-800">
+                      Tests: {req.selectedTests.join(', ')}
+                    </p>
 
-                  <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-600 grid grid-cols-2 gap-2">
-                    <p>📅 Date: {req.preferredDate} ({req.preferredTime})</p>
-                    <p>📍 Address: {req.patientAddress}</p>
+                    <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-600 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <p>📅 Date: {req.preferredDate} ({req.preferredTime})</p>
+                      <p>📍 Address: {req.patientAddress}</p>
+                    </div>
+
+                    {/* Dispatch Phlebotomist details */}
+                    {(req.technicianName || req.technicianPhone) && (
+                      <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100/60 text-xs text-slate-700">
+                        <p className="font-bold text-blue-900 flex items-center gap-1">
+                          <User className="w-3.5 h-3.5" />
+                          <span>Assigned Phlebotomist / Technician</span>
+                        </p>
+                        <p className="mt-1 font-medium">
+                          Name: <span className="font-bold text-slate-800">{req.technicianName}</span> | 
+                          Contact: <span className="font-bold text-slate-800">{req.technicianPhone}</span>
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Report PDF Display */}
+                    {isReady && req.reportPdfUrl && (
+                      <div className="p-4 bg-emerald-50/40 rounded-2xl border border-emerald-200/50 space-y-2.5">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="text-[10px] text-emerald-800 font-extrabold uppercase tracking-wide block">Test Results Published</span>
+                            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5 mt-0.5">
+                              <FileText className="w-4 h-4 text-emerald-600" />
+                              {req.reportPdfName}
+                            </span>
+                          </div>
+                          
+                          <a
+                            href={req.reportPdfUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                          >
+                            <Download className="w-3 h-3" />
+                            <span>Download PDF</span>
+                          </a>
+                        </div>
+                        
+                        {req.reportComments && (
+                          <div className="bg-white/80 p-2.5 rounded-xl border border-emerald-100 text-[11px] text-slate-600">
+                            <span className="font-bold text-emerald-900 block text-[10px] uppercase mb-0.5">Clinical observations particularly:</span>
+                            <p className="whitespace-pre-line font-medium leading-relaxed">{req.reportComments}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

@@ -12,8 +12,10 @@ import { FeedbackToggle } from './components/FeedbackToggle';
 import { LandingPortal } from './portals/LandingPortal';
 import { PatientPortal } from './portals/PatientPortal';
 import { DoctorPortal } from './portals/DoctorPortal';
+import { HospitalPortal } from './portals/HospitalPortal';
 import { PharmacyPortal } from './portals/PharmacyPortal';
 import { AdminPortal } from './portals/AdminPortal';
+import { LabPortal } from './portals/LabPortal';
 
 function MainAppContent() {
   const { setPortal } = useApp();
@@ -49,7 +51,9 @@ function MainAppContent() {
           <Route path="/landing" element={<LandingPortal />} />
           <Route path="/patient" element={<PatientPortal />} />
           <Route path="/doctor" element={<DoctorPortal />} />
+          <Route path="/hospital" element={<HospitalPortal />} />
           <Route path="/pharmacy" element={<PharmacyPortal />} />
+          <Route path="/lab" element={<LabPortal />} />
           <Route path="/admin" element={<AdminPortal />} />
           
           {/* Secret dynamic gateway to Admin portal - rendered unconditionally for robust router matching */}
