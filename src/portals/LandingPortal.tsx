@@ -180,26 +180,34 @@ export const LandingPortal: React.FC = () => {
             const elem = document.getElementById('doctors-section');
             if (elem) elem.scrollIntoView({ behavior: 'smooth' });
           }}
-          className="relative h-44 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all text-left group border border-slate-200 cursor-pointer"
+          className="relative h-48 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-1 hover:border-blue-500/80 transition-all duration-300 text-left group border border-slate-200 bg-slate-950 cursor-pointer"
         >
           {/* Background Image */}
           <div className="absolute inset-0 z-0">
             <img 
               src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=600&q=80" 
               alt={t('bookAppointment')}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 brightness-[0.4]"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 brightness-[0.3] group-hover:brightness-[0.35]"
               referrerPolicy="no-referrer"
             />
             {/* Gradient Overlay for Readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
           </div>
           
+          {/* Floating Icon Badge top right */}
+          <div className="absolute top-4 right-4 z-10 w-9 h-9 rounded-xl bg-blue-500/10 backdrop-blur-md border border-blue-500/30 flex items-center justify-center text-blue-400 group-hover:bg-blue-600 group-hover:text-white group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+            <Calendar className="w-4 h-4" />
+          </div>
+
           {/* Content */}
           <div className="relative z-10 h-full p-5 flex flex-col justify-end">
-            <h3 className="font-black text-sm sm:text-base text-white tracking-tight drop-shadow-sm group-hover:text-blue-300 transition-colors">
+            <span className="text-[9px] uppercase font-black tracking-wider text-blue-400 mb-1 group-hover:text-blue-300 transition-colors">
+              Schedule & Meet
+            </span>
+            <h3 className="font-black text-sm sm:text-base text-white tracking-tight drop-shadow-sm group-hover:text-white transition-colors">
               {t('bookAppointment')}
             </h3>
-            <p className="text-[11px] sm:text-xs text-slate-200 font-medium mt-1 leading-snug drop-shadow-xs">
+            <p className="text-[11px] sm:text-xs text-slate-300 font-medium mt-1 leading-snug drop-shadow-xs">
               Video Call or Clinic Visit
             </p>
           </div>
@@ -211,26 +219,34 @@ export const LandingPortal: React.FC = () => {
             const elem = document.getElementById('prescription-analyzer-section');
             if (elem) elem.scrollIntoView({ behavior: 'smooth' });
           }}
-          className="relative h-44 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all text-left group border border-slate-200 cursor-pointer"
+          className="relative h-48 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-1 hover:border-red-500/80 transition-all duration-300 text-left group border border-slate-200 bg-slate-950 cursor-pointer"
         >
           {/* Background Image */}
           <div className="absolute inset-0 z-0">
             <img 
               src="https://images.unsplash.com/photo-1527689368864-3a821dbccc34?auto=format&fit=crop&w=600&q=80" 
               alt={t('prescriptionAnalyzer')}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 brightness-[0.4]"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 brightness-[0.3] group-hover:brightness-[0.35]"
               referrerPolicy="no-referrer"
             />
             {/* Gradient Overlay for Readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
           </div>
           
+          {/* Floating Icon Badge top right */}
+          <div className="absolute top-4 right-4 z-10 w-9 h-9 rounded-xl bg-red-500/10 backdrop-blur-md border border-red-500/30 flex items-center justify-center text-red-400 group-hover:bg-red-600 group-hover:text-white group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+            <Sparkles className="w-4 h-4" />
+          </div>
+
           {/* Content */}
           <div className="relative z-10 h-full p-5 flex flex-col justify-end">
-            <h3 className="font-black text-sm sm:text-base text-white tracking-tight drop-shadow-sm group-hover:text-red-300 transition-colors">
+            <span className="text-[9px] uppercase font-black tracking-wider text-red-400 mb-1 group-hover:text-red-300 transition-colors">
+              Clinical Intelligence
+            </span>
+            <h3 className="font-black text-sm sm:text-base text-white tracking-tight drop-shadow-sm group-hover:text-white transition-colors">
               {t('prescriptionAnalyzer')}
             </h3>
-            <p className="text-[11px] sm:text-xs text-slate-200 font-medium mt-1 leading-snug drop-shadow-xs">
+            <p className="text-[11px] sm:text-xs text-slate-300 font-medium mt-1 leading-snug drop-shadow-xs">
               AI record & PDF scanner
             </p>
           </div>
@@ -239,26 +255,34 @@ export const LandingPortal: React.FC = () => {
         <button
           id="quick-action-sample"
           onClick={() => setIsSampleModalOpen(true)}
-          className="relative h-44 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all text-left group border border-slate-200 cursor-pointer"
+          className="relative h-48 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-1 hover:border-emerald-500/80 transition-all duration-300 text-left group border border-slate-200 bg-slate-950 cursor-pointer"
         >
           {/* Background Image */}
           <div className="absolute inset-0 z-0">
             <img 
               src="https://images.unsplash.com/photo-1581594693702-fbdc51b2763b?auto=format&fit=crop&w=600&q=80" 
               alt={t('homeSample')}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 brightness-[0.4]"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 brightness-[0.3] group-hover:brightness-[0.35]"
               referrerPolicy="no-referrer"
             />
             {/* Gradient Overlay for Readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
           </div>
           
+          {/* Floating Icon Badge top right */}
+          <div className="absolute top-4 right-4 z-10 w-9 h-9 rounded-xl bg-emerald-500/10 backdrop-blur-md border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+            <TestTube2 className="w-4 h-4" />
+          </div>
+
           {/* Content */}
           <div className="relative z-10 h-full p-5 flex flex-col justify-end">
-            <h3 className="font-black text-sm sm:text-base text-white tracking-tight drop-shadow-sm group-hover:text-emerald-300 transition-colors">
+            <span className="text-[9px] uppercase font-black tracking-wider text-emerald-400 mb-1 group-hover:text-emerald-300 transition-colors">
+              Diagnostics
+            </span>
+            <h3 className="font-black text-sm sm:text-base text-white tracking-tight drop-shadow-sm group-hover:text-white transition-colors">
               {t('homeSample')}
             </h3>
-            <p className="text-[11px] sm:text-xs text-slate-200 font-medium mt-1 leading-snug drop-shadow-xs">
+            <p className="text-[11px] sm:text-xs text-slate-300 font-medium mt-1 leading-snug drop-shadow-xs">
               Doorstep phlebotomist
             </p>
           </div>
@@ -267,26 +291,34 @@ export const LandingPortal: React.FC = () => {
         <button
           id="quick-action-pharmacy"
           onClick={() => setPortal('pharmacy')}
-          className="relative h-44 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all text-left group border border-slate-200 cursor-pointer"
+          className="relative h-48 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-1 hover:border-amber-500/80 transition-all duration-300 text-left group border border-slate-200 bg-slate-950 cursor-pointer"
         >
           {/* Background Image */}
           <div className="absolute inset-0 z-0">
             <img 
               src="https://images.unsplash.com/photo-1586015555751-63bb77f4322a?auto=format&fit=crop&w=600&q=80" 
               alt={t('orderMedicines')}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 brightness-[0.4]"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 brightness-[0.3] group-hover:brightness-[0.35]"
               referrerPolicy="no-referrer"
             />
             {/* Gradient Overlay for Readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
           </div>
           
+          {/* Floating Icon Badge top right */}
+          <div className="absolute top-4 right-4 z-10 w-9 h-9 rounded-xl bg-amber-500/10 backdrop-blur-md border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:bg-amber-600 group-hover:text-white group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+            <Pill className="w-4 h-4" />
+          </div>
+
           {/* Content */}
           <div className="relative z-10 h-full p-5 flex flex-col justify-end">
-            <h3 className="font-black text-sm sm:text-base text-white tracking-tight drop-shadow-sm group-hover:text-amber-300 transition-colors">
+            <span className="text-[9px] uppercase font-black tracking-wider text-amber-400 mb-1 group-hover:text-amber-300 transition-colors">
+              E-Pharmacy
+            </span>
+            <h3 className="font-black text-sm sm:text-base text-white tracking-tight drop-shadow-sm group-hover:text-white transition-colors">
               {t('orderMedicines')}
             </h3>
-            <p className="text-[11px] sm:text-xs text-slate-200 font-medium mt-1 leading-snug drop-shadow-xs">
+            <p className="text-[11px] sm:text-xs text-slate-300 font-medium mt-1 leading-snug drop-shadow-xs">
               From admin stores
             </p>
           </div>

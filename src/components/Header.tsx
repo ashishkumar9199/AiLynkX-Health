@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { Language, PortalType } from '../types';
+import { AnnouncementBanner } from './AnnouncementBanner';
 import { 
   Menu, 
   Bell, 
@@ -61,6 +62,9 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 bg-blue-700 text-white shadow-md">
+      {/* "Coming Soon" Infinite Scrolling Announcement Banner */}
+      <AnnouncementBanner />
+
       {/* Top Red Emergency Bar */}
       <div className="bg-red-600 text-white py-1 px-4 text-xs font-semibold flex items-center justify-between border-b border-red-700">
         <div className="flex items-center gap-2 max-w-7xl mx-auto w-full">
