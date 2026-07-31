@@ -97,6 +97,10 @@ interface AppContextType {
   setIsNotificationDrawerOpen: (open: boolean) => void;
   isSosModalOpen: boolean;
   setIsSosModalOpen: (open: boolean) => void;
+  isAuthModalOpen: boolean;
+  setIsAuthModalOpen: (open: boolean) => void;
+  authModalMode: 'login' | 'signup';
+  setAuthModalMode: (mode: 'login' | 'signup') => void;
   activeVideoCall: Appointment | null;
   startVideoCall: (apt: Appointment) => void;
   endVideoCall: () => void;
@@ -213,6 +217,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isPortalDrawerOpen, setIsPortalDrawerOpen] = useState(false);
   const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState(false);
   const [isSosModalOpen, setIsSosModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
   const [activeVideoCall, setActiveVideoCall] = useState<Appointment | null>(null);
   const [activeBookingDoctor, setActiveBookingDoctor] = useState<Doctor | null>(null);
 
@@ -739,6 +745,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setIsNotificationDrawerOpen,
       isSosModalOpen,
       setIsSosModalOpen,
+      isAuthModalOpen,
+      setIsAuthModalOpen,
+      authModalMode,
+      setAuthModalMode,
       activeVideoCall,
       startVideoCall,
       endVideoCall,

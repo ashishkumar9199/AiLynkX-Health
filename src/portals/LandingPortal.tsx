@@ -135,6 +135,20 @@ export const LandingPortal: React.FC = () => {
               >
                 <span>{t('prescriptionAnalyzer')}</span>
               </button>
+
+              <button
+                id="header-quick-book-btn"
+                onClick={() => {
+                  const doctorElem = document.getElementById('doctors-section');
+                  if (doctorElem) {
+                    doctorElem.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white font-extrabold px-6 py-3.5 rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2 text-sm border border-red-500"
+              >
+                <Stethoscope className="w-5 h-5" />
+                <span>{t('bookAppointment')}</span>
+              </button>
             </div>
 
             {/* Key Trust Stats */}

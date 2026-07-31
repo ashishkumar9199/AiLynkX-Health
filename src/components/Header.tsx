@@ -7,10 +7,11 @@ import {
   Globe, 
   ShoppingCart, 
   PhoneCall, 
-  Stethoscope, 
   ShieldAlert,
   ChevronDown,
-  Sparkles
+  Sparkles,
+  LogIn,
+  UserPlus
 } from 'lucide-react';
 
 export const Header: React.FC = () => {
@@ -24,7 +25,9 @@ export const Header: React.FC = () => {
     setIsNotificationDrawerOpen,
     setIsSosModalOpen,
     unreadNotificationCount,
-    cart
+    cart,
+    setIsAuthModalOpen,
+    setAuthModalMode
   } = useApp();
 
   const [isLangOpen, setIsLangOpen] = React.useState(false);
@@ -208,20 +211,30 @@ export const Header: React.FC = () => {
             )}
           </button>
 
-          {/* Book Doctor Quick CTA Button */}
+          {/* Sign In Button */}
           <button
-            id="header-quick-book-btn"
+            id="header-login-btn"
             onClick={() => {
-              setPortal('landing');
-              const doctorElem = document.getElementById('doctors-section');
-              if (doctorElem) {
-                doctorElem.scrollIntoView({ behavior: 'smooth' });
-              }
+              setAuthModalMode('login');
+              setIsAuthModalOpen(true);
             }}
-            className="hidden sm:flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all active:scale-95 border border-red-500"
+            className="flex items-center gap-1.5 bg-blue-800 hover:bg-blue-900 text-white px-3 py-1.5 rounded-full text-xs font-bold transition-all border border-blue-600 shadow-xs cursor-pointer hover:border-blue-400 active:scale-95 shrink-0"
           >
-            <Stethoscope className="w-3.5 h-3.5" />
-            <span>{t('bookAppointment')}</span>
+            <LogIn className="w-3.5 h-3.5 text-blue-200" />
+            <span>Sign In</span>
+          </button>
+
+          {/* Sign Up / Register Button */}
+          <button
+            id="header-signup-btn"
+            onClick={() => {
+              setAuthModalMode('signup');
+              setIsAuthModalOpen(true);
+            }}
+            className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3.5 py-1.5 rounded-full text-xs font-black transition-all border border-red-500 shadow-md hover:shadow-lg active:scale-95 shrink-0"
+          >
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>Register</span>
           </button>
 
         </div>
