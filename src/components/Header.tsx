@@ -110,17 +110,10 @@ export const Header: React.FC = () => {
           <div 
             onClick={() => setPortal('landing')} 
             className="flex items-center gap-2 cursor-pointer group shrink-0"
+            title="Go to Homepage"
           >
             <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-blue-700 font-extrabold text-lg shadow-sm border-2 border-blue-200 group-hover:scale-105 transition-transform">
               +
-            </div>
-            <div className="hidden min-md:block min-[450px]:block">
-              <h1 className="font-extrabold text-sm sm:text-lg text-white tracking-tight leading-none flex items-center gap-0.5">
-                HEALTH<span className="text-red-400">CONNECT</span>
-              </h1>
-              <p className="text-[9px] sm:text-[10px] text-blue-100 uppercase tracking-widest font-semibold mt-0.5">
-                {t('appSubtitle')}
-              </p>
             </div>
           </div>
         </div>

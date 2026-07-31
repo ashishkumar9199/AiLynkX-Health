@@ -36,7 +36,7 @@ export const AuthModal: React.FC = () => {
 
   const [selectedRole, setSelectedRole] = useState<PortalType>('patient');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('••••••••');
+  const [password, setPassword] = useState('');
   
   // Custom Registration Fields
   const [fullName, setFullName] = useState('');
@@ -77,30 +77,8 @@ export const AuthModal: React.FC = () => {
 
   if (!isAuthModalOpen) return null;
 
-  // Pre-configured Demo Accounts for high fidelity logins
-  const getDemoCredentials = (role: PortalType) => {
-    switch (role) {
-      case 'patient':
-        return { email: 'patient@healthconnect.org', desc: 'Demo Patient account with scheduled bookings' };
-      case 'doctor':
-        return { email: 'doctor@healthconnect.org', desc: 'Pre-registered Cardiac specialist dashboard' };
-      case 'hospital':
-        return { email: 'hospital@healthconnect.org', desc: 'Medicare Clinical Center controller' };
-      case 'pharmacy':
-        return { email: 'pharmacy@healthconnect.org', desc: 'Apothecary and delivery partner portal' };
-      case 'lab':
-        return { email: 'lab@healthconnect.org', desc: 'Precision diagnostics and phlebotomy desk' };
-      case 'admin':
-        return { email: 'admin@healthconnect.org', desc: 'System master panel (verify vendors, approve doctors)' };
-      default:
-        return { email: 'guest@healthconnect.org', desc: 'Public portal overview' };
-    }
-  };
-
   const handleRoleChange = (role: PortalType) => {
     setSelectedRole(role);
-    const demo = getDemoCredentials(role);
-    setEmail(demo.email);
   };
 
   const handleLoginSubmit = (e: React.FormEvent) => {
@@ -314,8 +292,6 @@ export const AuthModal: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setAuthModalMode('login');
-                  const demo = getDemoCredentials(selectedRole);
-                  setEmail(demo.email);
                 }}
                 className={`flex-1 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
                   authModalMode === 'login' 
@@ -452,20 +428,7 @@ export const AuthModal: React.FC = () => {
               </div>
             </div>
 
-            {/* Demo Account Indicator Info Banner */}
-            {authModalMode === 'login' && (
-              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3 flex gap-2.5">
-                <Sparkles className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-[10px] bg-blue-100 text-blue-700 font-extrabold px-1.5 py-0.5 rounded uppercase">
-                    Demo Preset Detected
-                  </span>
-                  <p className="text-xs font-semibold text-blue-950 mt-1">
-                    {getDemoCredentials(selectedRole).desc}
-                  </p>
-                </div>
-              </div>
-            )}
+
 
             {/* Form Fields */}
             {authModalMode === 'login' ? (

@@ -679,10 +679,24 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const markAllNotificationsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setNotifications(prev => prev.map(n => {
+      const isVisible = portal === 'admin' ? n.targetPortal === 'admin' : n.targetPortal !== 'admin';
+      if (isVisible) {
+        return { ...n, read: true };
+      }
+      return n;
+    }));
   };
 
-  const unreadNotificationCount = notifications.filter(n => !n.read).length;
+  const filteredNotificationsForPortal = notifications.filter(n => {
+    if (portal === 'admin') {
+      return n.targetPortal === 'admin';
+    } else {
+      return n.targetPortal !== 'admin';
+    }
+  });
+
+  const unreadNotificationCount = filteredNotificationsForPortal.filter(n => !n.read).length;
 
   // Video Call Telehealth trigger
   const startVideoCall = (apt: Appointment) => {
@@ -734,7 +748,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       deleteLab,
       uploadedDocs,
       uploadDocument,
-      notifications,
+      notifications: filteredNotificationsForPortal,
       unreadNotificationCount,
       addNotification,
       markNotificationRead,
