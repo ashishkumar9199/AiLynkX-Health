@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { VideoCallModal } from '../components/VideoCallModal';
 import { Appointment } from '../types';
@@ -17,7 +17,15 @@ import {
   AlertCircle,
   ArrowRight,
   ExternalLink,
-  User
+  User,
+  Lock,
+  LogOut,
+  Key,
+  Eye,
+  EyeOff,
+  Mail,
+  Check,
+  ShieldCheck
 } from 'lucide-react';
 
 export const PatientPortal: React.FC = () => {
@@ -31,8 +39,183 @@ export const PatientPortal: React.FC = () => {
     activeVideoCall, 
     endVideoCall,
     setPortal,
+    addNotification,
     t 
   } = useApp();
+
+  // Patient Authentication State
+  const [loggedInPatient, setLoggedInPatient] = useState<any>(() => {
+    const saved = localStorage.getItem('logged_in_patient');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return null;
+  });
+
+  // Storage listener to keep state perfectly synchronized in real-time
+  useEffect(() => {
+    const checkAuth = () => {
+      const saved = localStorage.getItem('logged_in_patient');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (JSON.stringify(parsed) !== JSON.stringify(loggedInPatient)) {
+            setLoggedInPatient(parsed);
+          }
+        } catch (e) {
+          // ignore
+        }
+      } else if (loggedInPatient) {
+        setLoggedInPatient(null);
+      }
+    };
+
+    window.addEventListener('storage', checkAuth);
+    const interval = setInterval(checkAuth, 1000);
+
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+      clearInterval(interval);
+    };
+  }, [loggedInPatient]);
+
+  const [authView, setAuthView] = useState<'signin' | 'signup'>('signin');
+  
+  // Login input states
+  const [signInEmail, setSignInEmail] = useState('');
+  const [signInPassword, setSignInPassword] = useState('');
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [signInError, setSignInError] = useState('');
+
+  // Signup input states
+  const [signUpName, setSignUpName] = useState('');
+  const [signUpEmail, setSignUpEmail] = useState('');
+  const [signUpPassword, setSignUpPassword] = useState('');
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+  const [signUpPhone, setSignUpPhone] = useState('');
+  const [signUpAge, setSignUpAge] = useState('30');
+  const [signUpGender, setSignUpGender] = useState('Male');
+  const [signUpBloodGroup, setSignUpBloodGroup] = useState('O+');
+  const [signUpError, setSignUpError] = useState('');
+
+  const getRegisteredPatients = () => {
+    const stored = localStorage.getItem('aily_registered_patients');
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [
+      {
+        name: 'Demo Patient',
+        email: 'patient@healthconnect.org',
+        password: 'password123',
+        phone: '+1 555-0199',
+        age: '30',
+        gender: 'Male',
+        bloodGroup: 'O+'
+      }
+    ];
+  };
+
+  const handleSignInSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSignInError('');
+
+    if (!signInEmail.trim() || !signInPassword.trim()) {
+      setSignInError('Please fill in all fields.');
+      return;
+    }
+
+    const patients = getRegisteredPatients();
+    const foundPatient = patients.find(
+      (p: any) => p.email.toLowerCase() === signInEmail.trim().toLowerCase() && p.password === signInPassword
+    );
+
+    if (!foundPatient) {
+      setSignInError('Invalid registered patient email or password. Please try again or sign up.');
+      return;
+    }
+
+    // Success login
+    localStorage.setItem('logged_in_patient', JSON.stringify(foundPatient));
+    localStorage.setItem('patient_profile', JSON.stringify(foundPatient));
+    setLoggedInPatient(foundPatient);
+    
+    addNotification({
+      title: '🔑 Patient Dashboard Unlocked',
+      message: `Welcome back, ${foundPatient.name}! You are now securely logged into your health portal.`,
+      type: 'system',
+      targetPortal: 'patient'
+    });
+
+    setSignInEmail('');
+    setSignInPassword('');
+  };
+
+  const handleSignUpSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSignUpError('');
+
+    if (!signUpName.trim() || !signUpEmail.trim() || !signUpPassword.trim() || !signUpPhone.trim()) {
+      setSignUpError('Please fill in all required fields.');
+      return;
+    }
+
+    const patients = getRegisteredPatients();
+    const exists = patients.some((p: any) => p.email.toLowerCase() === signUpEmail.trim().toLowerCase());
+    
+    if (exists) {
+      setSignUpError('An account with this email address is already registered.');
+      return;
+    }
+
+    const newPatientObj = {
+      name: signUpName.trim(),
+      email: signUpEmail.trim().toLowerCase(),
+      password: signUpPassword,
+      phone: signUpPhone.trim(),
+      age: signUpAge,
+      gender: signUpGender,
+      bloodGroup: signUpBloodGroup
+    };
+
+    patients.push(newPatientObj);
+    localStorage.setItem('aily_registered_patients', JSON.stringify(patients));
+    
+    // Auto login
+    localStorage.setItem('logged_in_patient', JSON.stringify(newPatientObj));
+    localStorage.setItem('patient_profile', JSON.stringify(newPatientObj));
+    setLoggedInPatient(newPatientObj);
+
+    addNotification({
+      title: '🎉 Patient Registration Successful',
+      message: `Welcome ${newPatientObj.name}! Your patient health records account has been created.`,
+      type: 'system',
+      targetPortal: 'patient'
+    });
+
+    // Clear fields
+    setSignUpName('');
+    setSignUpEmail('');
+    setSignUpPassword('');
+    setSignUpPhone('');
+    setSignUpAge('30');
+    setSignUpGender('Male');
+    setSignUpBloodGroup('O+');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('logged_in_patient');
+    localStorage.removeItem('patient_profile');
+    setLoggedInPatient(null);
+  };
 
   const [activeTab, setActiveTab] = useState<'appointments' | 'documents' | 'samples' | 'orders'>('appointments');
   const [docUploadModal, setDocUploadModal] = useState(false);
@@ -55,31 +238,286 @@ export const PatientPortal: React.FC = () => {
     setDocUploadModal(false);
   };
 
+  if (!loggedInPatient) {
+    return (
+      <div className="max-w-md mx-auto my-12 bg-white rounded-3xl border border-slate-200 p-8 shadow-xl">
+        <div className="text-center space-y-2 mb-6">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto text-blue-600 shadow-inner">
+            <User className="w-6 h-6" />
+          </div>
+          <h2 className="text-xl font-black text-slate-900 tracking-tight">Patient Health Dashboard</h2>
+          <p className="text-xs text-slate-500 font-medium max-w-sm mx-auto">
+            Please log in with your patient credentials to access your secure prescriptions, upcoming consultations, and medical history.
+          </p>
+        </div>
+
+        {/* Auth Tabs Capsule */}
+        <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200 text-xs font-bold gap-1 mb-6">
+          <button
+            onClick={() => { setAuthView('signin'); setSignInError(''); setSignUpError(''); }}
+            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              authView === 'signin' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Sign In
+          </button>
+          <button
+            onClick={() => { setAuthView('signup'); setSignInError(''); setSignUpError(''); }}
+            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+              authView === 'signup' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Create Account
+          </button>
+        </div>
+
+        {authView === 'signin' ? (
+          <form onSubmit={handleSignInSubmit} className="space-y-4">
+            {signInError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-semibold flex items-start gap-2 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-500" />
+                <span>{signInError}</span>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">
+                Email / Username *
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+                <input
+                  type="email"
+                  required
+                  value={signInEmail}
+                  onChange={(e) => setSignInEmail(e.target.value)}
+                  placeholder="e.g. patient@healthconnect.org"
+                  className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30 font-semibold"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">
+                Password *
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+                <input
+                  type={showSignInPassword ? 'text' : 'password'}
+                  required
+                  value={signInPassword}
+                  onChange={(e) => setSignInPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-10 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30 font-semibold"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSignInPassword(!showSignInPassword)}
+                  className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600"
+                >
+                  {showSignInPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold py-3 rounded-2xl text-xs shadow-md transition-all uppercase tracking-wider"
+            >
+              Sign In to Patient Portal
+            </button>
+
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 mt-6 text-[11px] text-slate-500 font-medium">
+              <span className="font-bold text-slate-700 block mb-1">💡 Sandbox Testing Credentials:</span>
+              <div className="flex justify-between items-center mb-1">
+                <span>Email:</span>
+                <span className="font-mono font-extrabold text-blue-900 select-all">patient@healthconnect.org</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>Password:</span>
+                <span className="font-mono font-extrabold text-blue-900 select-all">password123</span>
+              </div>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleSignUpSubmit} className="space-y-4">
+            {signUpError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-semibold flex items-start gap-2 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-500" />
+                <span>{signUpError}</span>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">
+                Full Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={signUpName}
+                onChange={(e) => setSignUpName(e.target.value)}
+                placeholder="e.g. Jane Doe"
+                className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30 font-semibold"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">
+                Email Address *
+              </label>
+              <input
+                type="email"
+                required
+                value={signUpEmail}
+                onChange={(e) => setSignUpEmail(e.target.value)}
+                placeholder="e.g. jane.doe@example.com"
+                className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30 font-semibold"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">
+                Choose Password *
+              </label>
+              <div className="relative">
+                <input
+                  type={showSignUpPassword ? 'text' : 'password'}
+                  required
+                  value={signUpPassword}
+                  onChange={(e) => setSignUpPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 pr-10 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30 font-semibold"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                  className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600"
+                >
+                  {showSignUpPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">
+                Phone Number *
+              </label>
+              <input
+                type="tel"
+                required
+                value={signUpPhone}
+                onChange={(e) => setSignUpPhone(e.target.value)}
+                placeholder="e.g. +1 (555) 019-9922"
+                className="w-full px-4 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30 font-semibold"
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">
+                  Age *
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  max="120"
+                  value={signUpAge}
+                  onChange={(e) => setSignUpAge(e.target.value)}
+                  className="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30 font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">
+                  Gender *
+                </label>
+                <select
+                  value={signUpGender}
+                  onChange={(e) => setSignUpGender(e.target.value)}
+                  className="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30 font-semibold"
+                >
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">
+                  Blood *
+                </label>
+                <select
+                  value={signUpBloodGroup}
+                  onChange={(e) => setSignUpBloodGroup(e.target.value)}
+                  className="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600/30 font-semibold"
+                >
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold py-3 rounded-2xl text-xs shadow-md transition-all uppercase tracking-wider"
+            >
+              Generate Patient Profile & Login
+            </button>
+          </form>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 pb-16">
       
       {/* Patient Welcome Banner */}
       <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div>
-          <span className="bg-red-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full tracking-wider mb-2 inline-block">
-            AiLynkX Patient Portal
-          </span>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <span className="bg-red-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full tracking-wider inline-block">
+              AiLynkX Patient Portal
+            </span>
+            <span className="bg-white/10 text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wider inline-block">
+              👤 ID: #{loggedInPatient?.email?.split('@')[0]}
+            </span>
+          </div>
           <h1 className="text-2xl sm:text-3xl font-black text-white">
-            Welcome to Your Health Dashboard
+            Welcome, {loggedInPatient?.name || 'Patient'}!
           </h1>
           <p className="text-blue-100 text-xs sm:text-sm mt-1 max-w-xl">
-            Manage your scheduled video consultations, view uploaded medical records, track home sample collection, and follow medicine deliveries.
+            Age: {loggedInPatient?.age || '30'} | Gender: {loggedInPatient?.gender || 'Male'} | Blood: {loggedInPatient?.bloodGroup || 'O+'} | Phone: {loggedInPatient?.phone || 'N/A'}
           </p>
         </div>
 
-        <button
-          id="patient-dashboard-book-btn"
-          onClick={() => setPortal('landing')}
-          className="bg-red-600 hover:bg-red-700 text-white font-extrabold px-5 py-3 rounded-2xl text-xs shadow-md transition-all flex items-center gap-2 shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Book New Consultation</span>
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            id="patient-dashboard-book-btn"
+            onClick={() => setPortal('landing')}
+            className="bg-red-600 hover:bg-red-700 text-white font-extrabold px-5 py-3 rounded-2xl text-xs shadow-md transition-all flex items-center gap-2 shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Book New Consultation</span>
+          </button>
+          
+          <button
+            onClick={handleLogout}
+            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-extrabold px-5 py-3 rounded-2xl text-xs shadow-sm transition-all flex items-center gap-2 shrink-0"
+          >
+            <LogOut className="w-4 h-4 text-red-400" />
+            <span>Log Out</span>
+          </button>
+        </div>
       </div>
 
       {/* Tabs Bar */}

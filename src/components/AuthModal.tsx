@@ -84,6 +84,37 @@ export const AuthModal: React.FC = () => {
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (selectedRole === 'patient') {
+      const storedPatients = localStorage.getItem('aily_registered_patients');
+      const patients = storedPatients ? JSON.parse(storedPatients) : [
+        {
+          name: 'Demo Patient',
+          email: 'patient@healthconnect.org',
+          password: 'password123',
+          phone: '+1 555-0199',
+          age: '30',
+          gender: 'Male',
+          bloodGroup: 'O+'
+        }
+      ];
+      if (!storedPatients) {
+        localStorage.setItem('aily_registered_patients', JSON.stringify(patients));
+      }
+
+      const foundPatient = patients.find(
+        (p: any) => p.email.toLowerCase() === email.trim().toLowerCase() && p.password === password
+      );
+
+      if (!foundPatient) {
+        alert('Invalid patient credentials. Please try again or sign up.');
+        return;
+      }
+
+      // Store active session and profile
+      localStorage.setItem('logged_in_patient', JSON.stringify(foundPatient));
+      localStorage.setItem('patient_profile', JSON.stringify(foundPatient));
+    }
+
     // Simulate login success
     addNotification({
       title: `🔑 Logged into ${selectedRole.toUpperCase()} Portal`,
@@ -115,6 +146,43 @@ export const AuthModal: React.FC = () => {
       message = 'Your personal Patient Health Record profile has been generated successfully. You can now book clinic appointments, upload PDFs, and request home phlebotomy visits.';
       roleName = 'Patient';
       
+      // Store in registered patients
+      const storedPatients = localStorage.getItem('aily_registered_patients');
+      const patients = storedPatients ? JSON.parse(storedPatients) : [
+        {
+          name: 'Demo Patient',
+          email: 'patient@healthconnect.org',
+          password: 'password123',
+          phone: '+1 555-0199',
+          age: '30',
+          gender: 'Male',
+          bloodGroup: 'O+'
+        }
+      ];
+
+      const exists = patients.some((p: any) => p.email.toLowerCase() === email.trim().toLowerCase());
+      if (exists) {
+        alert('An account with this email is already registered.');
+        return;
+      }
+
+      const newPatientObj = {
+        name: fullName,
+        email: email.trim().toLowerCase(),
+        password: password || 'password123',
+        phone: contactPhone,
+        age: patientAge,
+        gender: patientGender,
+        bloodGroup: bloodGroup
+      };
+
+      patients.push(newPatientObj);
+      localStorage.setItem('aily_registered_patients', JSON.stringify(patients));
+      
+      // Automatically log them in as well
+      localStorage.setItem('logged_in_patient', JSON.stringify(newPatientObj));
+      localStorage.setItem('patient_profile', JSON.stringify(newPatientObj));
+
       addNotification({
         title: '🎉 Patient Registration Successful',
         message: `Welcome ${fullName}! Your patient health records account is active.`,

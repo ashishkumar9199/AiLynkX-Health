@@ -26,7 +26,9 @@ import {
   Key,
   Clock,
   X,
-  Beaker
+  Beaker,
+  Megaphone,
+  Star
 } from 'lucide-react';
 
 export const AdminPortal: React.FC = () => {
@@ -58,7 +60,52 @@ export const AdminPortal: React.FC = () => {
     setPortal
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'doctors' | 'hospitals' | 'stores' | 'appointments' | 'samples' | 'orders' | 'security' | 'labs'>('doctors');
+  const [activeTab, setActiveTab] = useState<'doctors' | 'hospitals' | 'stores' | 'appointments' | 'samples' | 'orders' | 'security' | 'labs' | 'feedbacks'>('doctors');
+
+  // Load and manage user feedbacks
+  const [feedbacks, setFeedbacks] = useState<any[]>(() => {
+    const saved = localStorage.getItem('aily_feedbacks');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [];
+  });
+
+  // Keep feedbacks perfectly synchronized in real-time
+  useEffect(() => {
+    const syncFeedbacks = () => {
+      const saved = localStorage.getItem('aily_feedbacks');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (JSON.stringify(parsed) !== JSON.stringify(feedbacks)) {
+            setFeedbacks(parsed);
+          }
+        } catch (e) {
+          // ignore
+        }
+      } else if (feedbacks.length > 0) {
+        setFeedbacks([]);
+      }
+    };
+
+    window.addEventListener('storage', syncFeedbacks);
+    const interval = setInterval(syncFeedbacks, 1000);
+
+    return () => {
+      window.removeEventListener('storage', syncFeedbacks);
+      clearInterval(interval);
+    };
+  }, [feedbacks]);
+
+  // Feedback Filtering States
+  const [fbCategoryFilter, setFbCategoryFilter] = useState<string>('all');
+  const [fbRatingFilter, setFbRatingFilter] = useState<string>('all');
+  const [fbSearchQuery, setFbSearchQuery] = useState<string>('');
 
   // Admin Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -526,6 +573,17 @@ export const AdminPortal: React.FC = () => {
         >
           <Settings className="w-4 h-4" />
           Access & Security Settings
+        </button>
+
+        <button
+          id="admin-tab-feedbacks"
+          onClick={() => setActiveTab('feedbacks')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap ${
+            activeTab === 'feedbacks' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Megaphone className="w-4 h-4" />
+          User Feedbacks ({feedbacks.length})
         </button>
       </div>
 
@@ -2086,6 +2144,258 @@ export const AdminPortal: React.FC = () => {
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* Tab 9: User Feedbacks Management */}
+      {activeTab === 'feedbacks' && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Header & Stats Banner */}
+          <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div>
+              <span className="bg-red-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full tracking-wider mb-2 inline-block">
+                AiLynkX Portal Feedback Core
+              </span>
+              <h1 className="text-2xl font-black text-white">
+                User Feedbacks & Experience Insights
+              </h1>
+              <p className="text-slate-300 text-xs mt-1 max-w-xl">
+                Review ratings, compliment details, suggestions, and user bug reports transmitted from the floating feedback trigger.
+              </p>
+            </div>
+            
+            {feedbacks.length > 0 && (
+              <button
+                onClick={() => {
+                  if (confirm("Are you sure you want to delete and wipe out all registered feedback logs from local storage? This action cannot be undone.")) {
+                    localStorage.removeItem('aily_feedbacks');
+                    setFeedbacks([]);
+                  }
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs transition-all shadow-md flex items-center gap-1.5 self-end md:self-center shrink-0 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Clear All Feedbacks
+              </button>
+            )}
+          </div>
+
+          {/* Stats Cards Section */}
+          {feedbacks.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Total Submissions</span>
+                <span className="text-2xl font-black text-slate-900 block mt-1">{feedbacks.length}</span>
+                <span className="text-[10px] text-slate-500 font-medium">From patients & visitors</span>
+              </div>
+              
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Average Rating</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <span className="text-2xl font-black text-slate-900">
+                    {(feedbacks.reduce((sum, f) => sum + (f.rating || 5), 0) / feedbacks.length).toFixed(1)}
+                  </span>
+                  <Star className="w-4 h-4 text-amber-500 fill-amber-500 shrink-0" />
+                </div>
+                <span className="text-[10px] text-slate-500 font-medium">Out of 5.0 maximum</span>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Bugs & Technical Issues</span>
+                <span className="text-2xl font-black text-red-600 block mt-1">
+                  {feedbacks.filter(f => f.category === 'Bug Report' || f.category === 'Technical Issue / Bug').length}
+                </span>
+                <span className="text-[10px] text-slate-500 font-medium">Need administrator review</span>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Compliments & Praise</span>
+                <span className="text-2xl font-black text-emerald-600 block mt-1">
+                  {feedbacks.filter(f => f.category === 'Compliment' || f.category === 'Compliment / Praise').length}
+                </span>
+                <span className="text-[10px] text-slate-500 font-medium">Highly rated experiences</span>
+              </div>
+            </div>
+          )}
+
+          {/* Filters Bar */}
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-center text-xs justify-between">
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+              <div className="w-full sm:w-48">
+                <input
+                  type="text"
+                  placeholder="Search user, email or content..."
+                  value={fbSearchQuery}
+                  onChange={(e) => setFbSearchQuery(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 bg-white rounded-xl focus:outline-none focus:border-red-600 font-medium"
+                />
+              </div>
+
+              <div>
+                <select
+                  value={fbCategoryFilter}
+                  onChange={(e) => setFbCategoryFilter(e.target.value)}
+                  className="px-3 py-2 border border-slate-200 bg-white rounded-xl focus:outline-none focus:border-red-600 font-bold text-slate-700"
+                >
+                  <option value="all">All Categories</option>
+                  <option value="Suggestion">Suggestions</option>
+                  <option value="Compliment">Compliments</option>
+                  <option value="Bug Report">Bug Reports</option>
+                  <option value="Other">Other / General</option>
+                </select>
+              </div>
+
+              <div>
+                <select
+                  value={fbRatingFilter}
+                  onChange={(e) => setFbRatingFilter(e.target.value)}
+                  className="px-3 py-2 border border-slate-200 bg-white rounded-xl focus:outline-none focus:border-red-600 font-bold text-slate-700"
+                >
+                  <option value="all">All Ratings</option>
+                  <option value="5">5 Stars only</option>
+                  <option value="4">4 Stars or more</option>
+                  <option value="3">3 Stars or more</option>
+                  <option value="2">2 Stars or less</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="text-[11px] text-slate-400 font-bold whitespace-nowrap self-end sm:self-auto">
+              Showing {feedbacks.filter(f => {
+                const matchesSearch = fbSearchQuery.trim() === '' || 
+                  (f.name || '').toLowerCase().includes(fbSearchQuery.toLowerCase()) || 
+                  (f.email || '').toLowerCase().includes(fbSearchQuery.toLowerCase()) || 
+                  (f.message || '').toLowerCase().includes(fbSearchQuery.toLowerCase());
+                
+                let matchesCategory = true;
+                if (fbCategoryFilter !== 'all') {
+                  matchesCategory = (f.category || '').toLowerCase().includes(fbCategoryFilter.toLowerCase()) ||
+                                    (f.category === 'Bug Report' && fbCategoryFilter === 'Bug Report');
+                }
+
+                let matchesRating = true;
+                if (fbRatingFilter !== 'all') {
+                  const r = f.rating || 5;
+                  if (fbRatingFilter === '5') matchesRating = r === 5;
+                  else if (fbRatingFilter === '4') matchesRating = r >= 4;
+                  else if (fbRatingFilter === '3') matchesRating = r >= 3;
+                  else if (fbRatingFilter === '2') matchesRating = r <= 2;
+                }
+
+                return matchesSearch && matchesCategory && matchesRating;
+              }).length} of {feedbacks.length} items
+            </div>
+          </div>
+
+          {/* Feedback list */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {feedbacks.length === 0 ? (
+              <div className="md:col-span-2 text-center py-16 bg-white border border-slate-200 rounded-3xl p-8 space-y-4">
+                <div className="w-16 h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mx-auto text-slate-400">
+                  <Megaphone className="w-8 h-8 text-slate-300" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-black text-slate-800">No Feedback Received Yet</h3>
+                  <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+                    When visitors submit suggestions or technical issues from the floating feedback modal, they will immediately appear here.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              feedbacks.filter(f => {
+                const matchesSearch = fbSearchQuery.trim() === '' || 
+                  (f.name || '').toLowerCase().includes(fbSearchQuery.toLowerCase()) || 
+                  (f.email || '').toLowerCase().includes(fbSearchQuery.toLowerCase()) || 
+                  (f.message || '').toLowerCase().includes(fbSearchQuery.toLowerCase());
+                
+                let matchesCategory = true;
+                if (fbCategoryFilter !== 'all') {
+                  matchesCategory = (f.category || '').toLowerCase().includes(fbCategoryFilter.toLowerCase());
+                }
+
+                let matchesRating = true;
+                if (fbRatingFilter !== 'all') {
+                  const r = f.rating || 5;
+                  if (fbRatingFilter === '5') matchesRating = r === 5;
+                  else if (fbRatingFilter === '4') matchesRating = r >= 4;
+                  else if (fbRatingFilter === '3') matchesRating = r >= 3;
+                  else if (fbRatingFilter === '2') matchesRating = r <= 2;
+                }
+
+                return matchesSearch && matchesCategory && matchesRating;
+              }).map((item, idx) => {
+                const isBug = item.category === 'Bug Report' || item.category === 'Technical Issue / Bug';
+                const isCompliment = item.category === 'Compliment' || item.category === 'Compliment / Praise';
+                
+                return (
+                  <div 
+                    key={item.id || idx} 
+                    className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-slate-300 transition-all shadow-xs relative flex flex-col justify-between"
+                  >
+                    <div>
+                      {/* Card Header: Rating & Category */}
+                      <div className="flex items-center justify-between mb-3.5">
+                        <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                          isBug 
+                            ? 'bg-red-50 text-red-700 border border-red-100' 
+                            : isCompliment 
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
+                              : 'bg-blue-50 text-blue-700 border border-blue-100'
+                        }`}>
+                          {item.category || 'Suggestion'}
+                        </span>
+                        
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star 
+                              key={star} 
+                              className={`w-3.5 h-3.5 ${
+                                star <= (item.rating || 5)
+                                  ? 'text-amber-500 fill-amber-500' 
+                                  : 'text-slate-200'
+                              }`} 
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Message Content */}
+                      <p className="text-slate-700 text-xs leading-relaxed font-semibold italic bg-slate-50 p-3.5 rounded-xl border border-slate-100 mb-4 select-all">
+                        "{item.message}"
+                      </p>
+                    </div>
+
+                    {/* Sender details */}
+                    <div className="flex items-center justify-between border-t border-slate-100 pt-3.5 text-[11px]">
+                      <div className="space-y-0.5 text-left">
+                        <h4 className="font-extrabold text-slate-800">{item.name || 'Anonymous User'}</h4>
+                        <a href={`mailto:${item.email}`} className="text-blue-600 hover:underline font-medium block">
+                          {item.email || 'N/A'}
+                        </a>
+                        <span className="text-[10px] text-slate-400 font-semibold block">
+                          ⏱️ {item.timestamp ? new Date(item.timestamp).toLocaleString() : 'Just now'}
+                        </span>
+                      </div>
+                      
+                      <button
+                        onClick={() => {
+                          if (confirm("Dismiss and delete this feedback entry?")) {
+                            const updated = feedbacks.filter((f, i) => (f.id ? f.id !== item.id : i !== idx));
+                            localStorage.setItem('aily_feedbacks', JSON.stringify(updated));
+                            setFeedbacks(updated);
+                          }
+                        }}
+                        className="p-2 bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-600 border border-slate-100 hover:border-red-100 rounded-xl transition-all cursor-pointer"
+                        title="Delete Feedback"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       )}
 
