@@ -404,27 +404,7 @@ export const AuthModal: React.FC = () => {
                   <p className="text-[9px] text-slate-500 mt-1 leading-tight">Inpatient beds & admin</p>
                 </button>
 
-                {/* Admin Tile (Login Only) */}
-                {authModalMode === 'login' ? (
-                  <button
-                    type="button"
-                    onClick={() => handleRoleChange('admin')}
-                    className={`p-3 rounded-2xl border text-left transition-all ${
-                      selectedRole === 'admin'
-                        ? 'border-red-600 bg-red-50/20 ring-1 ring-red-600/20'
-                        : 'border-slate-200 hover:bg-slate-50'
-                    }`}
-                  >
-                    <ShieldCheck className={`w-5 h-5 mb-2 ${selectedRole === 'admin' ? 'text-red-600' : 'text-slate-500'}`} />
-                    <p className="font-extrabold text-xs text-slate-900 leading-none">Admin Gate</p>
-                    <p className="text-[9px] text-slate-500 mt-1 leading-tight">Authorization panel</p>
-                  </button>
-                ) : (
-                  <div className="p-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 flex flex-col justify-center items-center text-center">
-                    <AlertCircle className="w-4 h-4 text-slate-400 mb-1" />
-                    <span className="text-[9px] font-bold text-slate-400">Admin Sign-up Disabled</span>
-                  </div>
-                )}
+
               </div>
             </div>
 
