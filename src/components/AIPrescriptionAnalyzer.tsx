@@ -136,42 +136,6 @@ export const AIPrescriptionAnalyzer: React.FC = () => {
               {t('analyzerSubtitle')}
             </p>
           </div>
-
-          {/* Preset Buttons */}
-          <div className="flex flex-wrap gap-2 shrink-0">
-            <span className="text-xs text-blue-200 w-full font-bold uppercase tracking-wider">
-              {t('samplePrescription')}:
-            </span>
-            {samplePrescriptionTexts.map((sample, idx) => {
-              const getShortTitle = (title: string) => {
-                if (title.includes("Cardiology")) return "Hypertension Rx";
-                if (title.includes("Diabetes")) return "Diabetes Care";
-                if (title.includes("Pediatric")) return "Pediatric Antibiotic";
-                return title;
-              };
-              const getThemedStyles = (index: number) => {
-                switch(index) {
-                  case 0: return "hover:bg-red-500/10 hover:border-red-500 hover:text-red-300";
-                  case 1: return "hover:bg-amber-500/10 hover:border-amber-500 hover:text-amber-300";
-                  case 2: return "hover:bg-blue-500/10 hover:border-blue-500 hover:text-blue-300";
-                  default: return "hover:bg-white/20 hover:border-white/40";
-                }
-              };
-              return (
-                <button
-                  key={idx}
-                  id={`sample-rx-btn-${idx}`}
-                  onClick={() => loadSample(sample)}
-                  className={`bg-white/5 active:bg-white/15 text-white text-xs px-3.5 py-2 rounded-xl border border-white/10 transition-all duration-200 font-bold flex items-center gap-1.5 shadow-sm ${getThemedStyles(idx)}`}
-                >
-                  {idx === 0 && <span className="text-red-400">❤️</span>}
-                  {idx === 1 && <span className="text-amber-400">🍬</span>}
-                  {idx === 2 && <span className="text-blue-400">👶</span>}
-                  <span>{getShortTitle(sample.title)}</span>
-                </button>
-              );
-            })}
-          </div>
         </div>
       </div>
 
