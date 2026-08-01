@@ -2,7 +2,7 @@ import React from 'react';
 
 export const AnnouncementBanner: React.FC = () => {
   // Define the core message string as requested
-  const messageSegment = "🚧 COMING SOON • New Features Are Under Development • Stay Tuned • Launching Soon • ";
+  const messageSegment = "COMING SOON • New Features Are Under Development • Stay Tuned • Launching Soon • ";
   
   // Repeat the message multiple times per track to ensure it overflows the screen width
   // even on ultra-wide desktop monitors, preventing any visual gaps in the marquee.
