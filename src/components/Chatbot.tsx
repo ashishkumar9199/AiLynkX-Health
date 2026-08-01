@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
+import { MedicalBotAvatar } from './MedicalBotAvatar';
 import { 
   MessageSquare, 
   Bot,
@@ -539,7 +540,7 @@ export const Chatbot: React.FC = () => {
           {hasPulse && (
             <span className="absolute inset-0 rounded-full bg-red-600 animate-ping opacity-60"></span>
           )}
-          <Bot className="w-6 h-6 relative z-10" />
+          <MedicalBotAvatar size={24} showBackground={false} className="relative z-10" />
           <span className="absolute right-14 bg-slate-900 text-white text-[11px] font-extrabold px-3 py-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-md whitespace-nowrap tracking-wide border border-slate-700">
             Dr. AiLynkX Carebot
           </span>
@@ -556,8 +557,8 @@ export const Chatbot: React.FC = () => {
           <div className="bg-slate-900 text-white p-4 flex items-center justify-between border-b border-slate-800">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-10 h-10 bg-red-600/10 border border-red-500/30 rounded-xl flex items-center justify-center text-red-500">
-                  <Activity className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden">
+                  <MedicalBotAvatar size={40} showBackground={true} />
                 </div>
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-slate-900"></span>
               </div>
@@ -594,23 +595,30 @@ export const Chatbot: React.FC = () => {
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} space-y-1`}
+                className={`flex gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} items-start`}
               >
-                <div
-                  className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs shadow-xs leading-relaxed ${
-                    msg.sender === 'user'
-                      ? 'bg-red-600 text-white font-medium rounded-tr-none'
-                      : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none font-medium'
-                  }`}
-                >
-                  <p className="whitespace-pre-line">{msg.text}</p>
-                  {msg.customRender && (
-                    <div className="mt-1">{msg.customRender}</div>
-                  )}
+                {msg.sender === 'bot' && (
+                  <div className="w-7 h-7 rounded-full overflow-hidden shrink-0 mt-0.5 border border-slate-100 shadow-xs">
+                    <MedicalBotAvatar size={28} showBackground={true} />
+                  </div>
+                )}
+                <div className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'} space-y-1 max-w-[80%]`}>
+                  <div
+                    className={`rounded-2xl px-3.5 py-2.5 text-xs shadow-xs leading-relaxed ${
+                      msg.sender === 'user'
+                        ? 'bg-red-600 text-white font-medium rounded-tr-none'
+                        : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none font-medium'
+                    }`}
+                  >
+                    <p className="whitespace-pre-line">{msg.text}</p>
+                    {msg.customRender && (
+                      <div className="mt-1">{msg.customRender}</div>
+                    )}
+                  </div>
+                  <span className="text-[9px] text-slate-400 font-medium px-1">
+                    {msg.timestamp}
+                  </span>
                 </div>
-                <span className="text-[9px] text-slate-400 font-medium px-1">
-                  {msg.timestamp}
-                </span>
               </div>
             ))}
 
