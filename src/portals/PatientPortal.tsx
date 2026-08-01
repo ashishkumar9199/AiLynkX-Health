@@ -328,17 +328,7 @@ export const PatientPortal: React.FC = () => {
               Sign In to Patient Portal
             </button>
 
-            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 mt-6 text-[11px] text-slate-500 font-medium">
-              <span className="font-bold text-slate-700 block mb-1">💡 Sandbox Testing Credentials:</span>
-              <div className="flex justify-between items-center mb-1">
-                <span>Email:</span>
-                <span className="font-mono font-extrabold text-blue-900 select-all">patient@healthconnect.org</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span>Password:</span>
-                <span className="font-mono font-extrabold text-blue-900 select-all">password123</span>
-              </div>
-            </div>
+
           </form>
         ) : (
           <form onSubmit={handleSignUpSubmit} className="space-y-4">
