@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { Doctor, PharmacyStore, MedicineItem } from '../types';
@@ -111,6 +111,22 @@ export const AdminPortal: React.FC = () => {
     window.location.hash = '';
     setPortal('landing');
   };
+
+  // Auto logout when the admin switches tabs / hides the page
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden || document.visibilityState === 'hidden') {
+        handleAdminLogout();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isAuthenticated]);
 
   // Doctor Form State
   const [docName, setDocName] = useState('');
