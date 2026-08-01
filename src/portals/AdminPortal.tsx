@@ -399,6 +399,33 @@ export const AdminPortal: React.FC = () => {
               <span>Cancel & Return Home</span>
             </button>
           </div>
+
+          {/* Domain Switch / Migration Assistance Guide */}
+          <div className="mt-6 pt-6 border-t border-slate-100 text-left">
+            <div className="bg-blue-50/80 border border-blue-100 rounded-2xl p-4 text-xs text-slate-700 space-y-2.5">
+              <div className="flex items-center gap-2 font-black text-blue-900 uppercase tracking-wider text-[11px]">
+                <Settings className="w-4 h-4 text-blue-600 animate-spin" style={{ animationDuration: '3s' }} />
+                <span>Domain Migration Info</span>
+              </div>
+              <p className="leading-relaxed font-medium text-slate-600">
+                Web browsers isolate secure local storage (<strong>localStorage</strong>) per domain origin. Because you are visiting from a newly mapped domain, your previous custom secret URL and custom credentials have defaulted back.
+              </p>
+              <div className="space-y-1.5 bg-white/80 border border-blue-100/50 rounded-xl p-3 font-medium shadow-sm">
+                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Secure Defaults for New Domain:</div>
+                <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] font-mono select-all">
+                  <span className="text-slate-500 font-sans font-bold">Username:</span>
+                  <span className="text-blue-950 font-extrabold text-right">suailynkxadmin25</span>
+                  <span className="text-slate-500 font-sans font-bold">Password:</span>
+                  <span className="text-blue-950 font-extrabold text-right">Shubham@#@#9199@#@#</span>
+                  <span className="text-slate-500 font-sans font-bold">Gateway:</span>
+                  <span className="text-blue-950 font-extrabold text-right">/admin-gate-suk2h2ai</span>
+                </div>
+              </div>
+              <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+                Log in using the default credentials above to restore or re-configure your preferred custom username, password, and custom gateway path at the bottom of the administrator hub.
+              </p>
+            </div>
+          </div>
         </form>
       </div>
     );
