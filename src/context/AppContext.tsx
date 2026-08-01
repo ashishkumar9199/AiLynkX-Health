@@ -232,9 +232,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const searchParams = new URLSearchParams(location.search.toLowerCase());
     const hasSecretInSearch = Array.from(searchParams.values()).some(val => val === cleanSecret) || location.search.toLowerCase().includes(cleanSecret);
 
-    if (cleanPath === cleanSecret || cleanHash === cleanSecret || hasSecretInSearch || cleanPath === 'admin') {
+    if (cleanPath === cleanSecret || cleanHash === cleanSecret || hasSecretInSearch) {
       setPortalState('admin');
-      if (cleanPath !== cleanSecret && cleanPath !== 'admin') {
+      if (cleanPath !== cleanSecret) {
         navigate(`/${cleanSecret}`, { replace: true });
       }
     } else if (cleanPath === 'patient') {

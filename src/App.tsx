@@ -37,8 +37,7 @@ function MainAppContent() {
   const isSecretMatch = 
     cleanPath === secretRoute || 
     cleanHash === secretRoute || 
-    hasSecretInSearch ||
-    cleanPath === 'admin';
+    hasSecretInSearch;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col antialiased selection:bg-blue-600 selection:text-white">
@@ -55,7 +54,6 @@ function MainAppContent() {
           <Route path="/hospital" element={<HospitalPortal />} />
           <Route path="/pharmacy" element={<PharmacyPortal />} />
           <Route path="/lab" element={<LabPortal />} />
-          <Route path="/admin" element={<AdminPortal />} />
           
           {/* Secret dynamic gateway to Admin portal - rendered unconditionally for robust router matching */}
           <Route path={`/${secretRoute}`} element={<AdminPortal />} />
