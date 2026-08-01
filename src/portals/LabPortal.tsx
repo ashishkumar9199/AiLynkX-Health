@@ -371,11 +371,7 @@ export const LabPortal: React.FC = () => {
               </button>
             </form>
 
-            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-              <p className="text-xs text-slate-400">
-                Authorized Lab center? Demo login: <code className="font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded">apexlab</code> / <code className="font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded">password123</code>
-              </p>
-            </div>
+
           </div>
         ) : (
           /* Signup Form */

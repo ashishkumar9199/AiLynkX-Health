@@ -484,20 +484,7 @@ export const HospitalPortal: React.FC = () => {
               </div>
             </div>
 
-            {/* Default Quick Credentials info card */}
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 p-5 rounded-2xl space-y-2">
-              <h4 className="text-xs font-bold text-amber-800 flex items-center gap-1.5">
-                <ShieldAlert className="w-4 h-4 text-amber-600" />
-                Demo Credentials
-              </h4>
-              <p className="text-[11px] text-slate-700 leading-relaxed">
-                Use an existing hospital account to test:
-                <br />
-                <strong>Username:</strong> <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-mono">stjude</code> or <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-mono">metrocare</code>
-                <br />
-                <strong>Password:</strong> <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-mono">password123</code>
-              </p>
-            </div>
+
           </div>
 
           {/* Form Area (Right Side) */}
