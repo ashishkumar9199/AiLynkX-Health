@@ -37,7 +37,7 @@ export const Footer: React.FC = () => {
       </div>
 
       {/* Main Footer Links */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 md:grid-cols-3 gap-6">
         
         {/* Brand Column */}
         <div className="space-y-3">
@@ -56,35 +56,6 @@ export const Footer: React.FC = () => {
           <p className="text-slate-400 leading-relaxed text-[11px]">
             Comprehensive online healthcare suite combining specialist video consultations, AI prescription safety reviews, lab sample pickup, and digital medicine store delivery.
           </p>
-        </div>
-
-        {/* Portal Links */}
-        <div className="space-y-2">
-          <h4 className="font-bold text-xs uppercase tracking-widest text-blue-400">
-            Portals
-          </h4>
-          <ul className="space-y-1.5 text-slate-400 font-medium text-[11px]">
-            <li>
-              <button onClick={() => setPortal('landing')} className="hover:text-white transition-colors">
-                • Public Landing & Doctor Directory
-              </button>
-            </li>
-            <li>
-              <button onClick={() => setPortal('patient')} className="hover:text-white transition-colors">
-                • Patient Dashboard & PDF Records
-              </button>
-            </li>
-            <li>
-              <button onClick={() => setPortal('doctor')} className="hover:text-white transition-colors">
-                • Doctor Workspace
-              </button>
-            </li>
-            <li>
-              <button onClick={() => setPortal('pharmacy')} className="hover:text-white transition-colors">
-                • Pharmacy Store & Orders
-              </button>
-            </li>
-          </ul>
         </div>
 
         {/* Features */}
