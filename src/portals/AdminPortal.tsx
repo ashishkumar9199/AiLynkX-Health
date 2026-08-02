@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { Doctor, PharmacyStore, MedicineItem } from '../types';
+import { BiometricAuth, BiometricRegisterToggle } from '../components/BiometricAuth';
+import { Fingerprint } from 'lucide-react';
 import { 
   ShieldCheck, 
   UserPlus, 
@@ -111,6 +113,7 @@ export const AdminPortal: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return localStorage.getItem('is_admin_logged_in') === 'true';
   });
+  const [isBiometricOpen, setIsBiometricOpen] = useState(false);
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -444,6 +447,15 @@ export const AdminPortal: React.FC = () => {
 
             <button
               type="button"
+              onClick={() => setIsBiometricOpen(true)}
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-3 rounded-2xl shadow-md transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer border border-slate-800"
+            >
+              <Fingerprint className="w-4 h-4 text-red-500 animate-pulse" />
+              <span>Sign In with TouchID / FaceID</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => {
                 window.location.hash = '';
                 setPortal('landing');
@@ -455,6 +467,18 @@ export const AdminPortal: React.FC = () => {
             </button>
           </div>
         </form>
+
+        <BiometricAuth
+          portalId="admin"
+          isOpen={isBiometricOpen}
+          onClose={() => setIsBiometricOpen(false)}
+          onSuccess={(username) => {
+            setIsAuthenticated(true);
+            localStorage.setItem('is_admin_logged_in', 'true');
+            setIsBiometricOpen(false);
+          }}
+          defaultUsername={adminUsername || 'suailynkxadmin25'}
+        />
       </div>
     );
   }
@@ -1932,6 +1956,15 @@ export const AdminPortal: React.FC = () => {
               </button>
             </div>
           </form>
+
+          {/* Biometric Registry Device Bond */}
+          <div className="pt-4 border-t border-slate-100">
+            <BiometricRegisterToggle
+              portalId="admin"
+              username={configUsername}
+              displayName="Master Administrator"
+            />
+          </div>
         </div>
       )}
 

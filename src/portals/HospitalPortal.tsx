@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { Doctor, Appointment } from '../types';
+import { BiometricAuth, BiometricRegisterToggle } from '../components/BiometricAuth';
+import { Fingerprint } from 'lucide-react';
 import { 
   Hospital, 
   PlusCircle, 
@@ -43,6 +45,7 @@ export const HospitalPortal: React.FC = () => {
   const [loggedInHospId, setLoggedInHospId] = useState<string | null>(() => {
     return localStorage.getItem('logged_in_hospital_id');
   });
+  const [isBiometricOpen, setIsBiometricOpen] = useState(false);
 
   const [authView, setAuthView] = useState<'signin' | 'signup'>('signin');
   const [usernameInput, setUsernameInput] = useState('');
@@ -566,6 +569,15 @@ export const HospitalPortal: React.FC = () => {
                   >
                     Enter Hospital Dashboard
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsBiometricOpen(true)}
+                    className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-3 rounded-xl shadow-md transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer border border-slate-800"
+                  >
+                    <Fingerprint className="w-4 h-4 text-red-500 animate-pulse" />
+                    <span>Sign In with TouchID / FaceID</span>
+                  </button>
                 </form>
               )}
 
@@ -692,10 +704,33 @@ export const HospitalPortal: React.FC = () => {
             </div>
           </div>
 
+          <BiometricAuth
+            portalId="hospital"
+            isOpen={isBiometricOpen}
+            onClose={() => setIsBiometricOpen(false)}
+            onSuccess={(username) => {
+              const foundHosp = hospitals.find(
+                h => h.username?.toLowerCase() === username.trim().toLowerCase()
+              );
+              if (foundHosp) {
+                setLoggedInHospId(foundHosp.id);
+                localStorage.setItem('logged_in_hospital_id', foundHosp.id);
+              }
+              setIsBiometricOpen(false);
+            }}
+            defaultUsername={usernameInput || 'stjude'}
+          />
         </div>
       ) : (
         /* --- AUTHENTICATED WORKSPACE --- */
         <div className="space-y-8">
+
+          {/* Biometric Registry Device Bond */}
+          <BiometricRegisterToggle
+            portalId="hospital"
+            username={currentHospital?.username}
+            displayName={currentHospital?.name}
+          />
           
           {/* Hospital Stats Blocks & Profile */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

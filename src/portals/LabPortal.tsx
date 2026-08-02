@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { HomeSampleRequest } from '../types';
+import { BiometricAuth, BiometricRegisterToggle } from '../components/BiometricAuth';
 import { 
   Beaker, 
   ClipboardList, 
@@ -43,6 +44,7 @@ export const LabPortal: React.FC = () => {
   const [loggedInLabId, setLoggedInLabId] = useState<string>(() => {
     return localStorage.getItem('logged_in_lab_id') || '';
   });
+  const [isBiometricOpen, setIsBiometricOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -369,6 +371,15 @@ export const LabPortal: React.FC = () => {
                 <span>Authorize Workspace</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
+
+              <button
+                type="button"
+                onClick={() => setIsBiometricOpen(true)}
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-3 rounded-xl shadow-md transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer border border-slate-800"
+              >
+                <Fingerprint className="w-4 h-4 text-red-500 animate-pulse" />
+                <span>Sign In with TouchID / FaceID</span>
+              </button>
             </form>
 
 
@@ -502,6 +513,23 @@ export const LabPortal: React.FC = () => {
             )}
           </div>
         )}
+
+        <BiometricAuth
+          portalId="lab"
+          isOpen={isBiometricOpen}
+          onClose={() => setIsBiometricOpen(false)}
+          onSuccess={(username) => {
+            const foundLab = labs.find(
+              l => l.username?.toLowerCase() === username.trim().toLowerCase()
+            );
+            if (foundLab) {
+              setLoggedInLabId(foundLab.id);
+              localStorage.setItem('logged_in_lab_id', foundLab.id);
+            }
+            setIsBiometricOpen(false);
+          }}
+          defaultUsername={loginUsername || 'apexlab'}
+        />
       </div>
     );
   }
@@ -598,6 +626,13 @@ export const LabPortal: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Biometric Registry Device Bond */}
+      <BiometricRegisterToggle
+        portalId="lab"
+        username={currentLab.username}
+        displayName={currentLab.name}
+      />
 
       {/* Analytical Stats Panel */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

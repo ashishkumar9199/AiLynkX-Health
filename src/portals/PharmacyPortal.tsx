@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { PhotoUpload } from '../components/PhotoUpload';
 import { MedicineItem } from '../types';
+import { BiometricAuth, BiometricRegisterToggle } from '../components/BiometricAuth';
+import { Fingerprint } from 'lucide-react';
 import { 
   Pill, 
   ShoppingCart, 
@@ -56,6 +58,7 @@ export const PharmacyPortal: React.FC = () => {
   const [loggedInStoreId, setLoggedInStoreId] = useState<string | null>(() => {
     return localStorage.getItem('logged_in_store_id');
   });
+  const [isBiometricOpen, setIsBiometricOpen] = useState(false);
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -734,6 +737,15 @@ export const PharmacyPortal: React.FC = () => {
                     >
                       Partner Authentication
                     </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsBiometricOpen(true)}
+                      className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-3.5 rounded-xl shadow-md transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer border border-slate-800"
+                    >
+                      <Fingerprint className="w-4 h-4 text-red-500 animate-pulse" />
+                      <span>Sign In with TouchID / FaceID</span>
+                    </button>
                   </form>
                 </div>
               ) : (
@@ -850,6 +862,23 @@ export const PharmacyPortal: React.FC = () => {
               <div className="pt-4 border-t border-slate-100 text-center text-[10px] text-slate-400 font-medium">
                 Authorized Lab / Store Access Console • Medicare Partners
               </div>
+
+              <BiometricAuth
+                portalId="pharmacy"
+                isOpen={isBiometricOpen}
+                onClose={() => setIsBiometricOpen(false)}
+                onSuccess={(username) => {
+                  const foundStore = stores.find(
+                    s => s.username?.toLowerCase() === username.trim().toLowerCase()
+                  );
+                  if (foundStore) {
+                    setLoggedInStoreId(foundStore.id);
+                    localStorage.setItem('logged_in_store_id', foundStore.id);
+                  }
+                  setIsBiometricOpen(false);
+                }}
+                defaultUsername={usernameInput || 'medcentral'}
+              />
             </div>
           ) : currentStore.isActive === false ? (
             <div className="max-w-md mx-auto my-12 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6 text-center text-xs animate-in fade-in duration-200">
@@ -986,6 +1015,13 @@ export const PharmacyPortal: React.FC = () => {
                   </button>
                 </div>
               </div>
+
+              {/* Biometric Registry Device Bond */}
+              <BiometricRegisterToggle
+                portalId="pharmacy"
+                username={currentStore.username}
+                displayName={currentStore.name}
+              />
 
               {/* Password update form */}
               {isChangingPassword && (
