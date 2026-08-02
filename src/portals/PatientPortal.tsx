@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { VideoCallModal } from '../components/VideoCallModal';
 import { Appointment } from '../types';
+import { InsuranceVerification } from '../components/InsuranceVerification';
 import { 
   Calendar, 
   Video, 
@@ -217,7 +218,7 @@ export const PatientPortal: React.FC = () => {
     setLoggedInPatient(null);
   };
 
-  const [activeTab, setActiveTab] = useState<'appointments' | 'documents' | 'samples' | 'orders'>('appointments');
+  const [activeTab, setActiveTab] = useState<'appointments' | 'documents' | 'samples' | 'orders' | 'insurance'>('appointments');
   const [docUploadModal, setDocUploadModal] = useState(false);
 
   const [docName, setDocName] = useState('');
@@ -553,6 +554,17 @@ export const PatientPortal: React.FC = () => {
           <Package className="w-4 h-4" />
           Medicine Orders ({orders.length})
         </button>
+
+        <button
+          id="tab-insurance"
+          onClick={() => setActiveTab('insurance')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap ${
+            activeTab === 'insurance' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4" />
+          Insurance Verification {loggedInPatient?.insurance?.status === 'verified' ? '(Verified)' : '(Unverified)'}
+        </button>
       </div>
 
       {/* Tab Content 1: Appointments */}
@@ -850,6 +862,34 @@ export const PatientPortal: React.FC = () => {
             )}
           </div>
         </div>
+      )}
+
+      {/* Tab Content 5: Insurance Verification */}
+      {activeTab === 'insurance' && (
+        <InsuranceVerification
+          patient={loggedInPatient}
+          onUpdatePatient={(updatedPatient) => {
+            setLoggedInPatient(updatedPatient);
+            localStorage.setItem('logged_in_patient', JSON.stringify(updatedPatient));
+            localStorage.setItem('patient_profile', JSON.stringify(updatedPatient));
+            
+            // Also sync within aily_registered_patients list
+            const stored = localStorage.getItem('aily_registered_patients');
+            if (stored) {
+              try {
+                const patients = JSON.parse(stored);
+                const index = patients.findIndex((p: any) => p.email.toLowerCase() === updatedPatient.email.toLowerCase());
+                if (index !== -1) {
+                  patients[index] = updatedPatient;
+                  localStorage.setItem('aily_registered_patients', JSON.stringify(patients));
+                }
+              } catch (e) {
+                console.error(e);
+              }
+            }
+          }}
+          addNotification={addNotification}
+        />
       )}
 
       {/* Doc Upload Modal */}

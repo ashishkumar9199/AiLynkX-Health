@@ -194,3 +194,16 @@ export interface LabTestOption {
   reportHours: number;
   description: string;
 }
+
+export interface InsuranceDetails {
+  provider: string;
+  policyNumber: string;
+  groupNumber: string;
+  holderName: string;
+  relationship: string;
+  status: 'unverified' | 'pending' | 'verified';
+  frontCardUrl?: string;
+  backCardUrl?: string;
+  verifiedAt?: string;
+}
+

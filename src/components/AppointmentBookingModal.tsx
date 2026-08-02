@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Doctor } from '../types';
 import { 
@@ -14,7 +14,12 @@ import {
   Phone, 
   Mail,
   ShieldCheck,
-  Stethoscope
+  Stethoscope,
+  ShieldAlert,
+  Lock,
+  Building,
+  Loader2,
+  CreditCard
 } from 'lucide-react';
 
 interface Props {
@@ -35,6 +40,50 @@ export const AppointmentBookingModal: React.FC<Props> = ({ doctor, onClose }) =>
   const [patientAge, setPatientAge] = useState<number>(32);
   const [patientGender, setPatientGender] = useState('Male');
   const [symptoms, setSymptoms] = useState('');
+
+  // Secure Health Insurance states
+  const [loggedInPatient, setLoggedInPatient] = useState<any>(null);
+  const [insuranceStatus, setInsuranceStatus] = useState<'unverified' | 'pending' | 'verified'>('unverified');
+  const [insProvider, setInsProvider] = useState('Blue Cross Blue Shield (BCBS)');
+  const [insPolicyNumber, setInsPolicyNumber] = useState('');
+  const [insGroupNumber, setInsGroupNumber] = useState('');
+  const [insHolderName, setInsHolderName] = useState('');
+  const [insRelationship, setInsRelationship] = useState('Self');
+  const [insFrontName, setInsFrontName] = useState<string | null>(null);
+  const [insBackName, setInsBackName] = useState<string | null>(null);
+  const [isVerifyingInsurance, setIsVerifyingInsurance] = useState(false);
+  const [insVerifyStepMessage, setInsVerifyStepMessage] = useState('');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('logged_in_patient');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed) {
+          setLoggedInPatient(parsed);
+          setPatientName(parsed.name || '');
+          setPatientPhone(parsed.phone || '');
+          setPatientEmail(parsed.email || '');
+          setPatientAge(Number(parsed.age) || 30);
+          setPatientGender(parsed.gender || 'Male');
+          if (parsed.insurance) {
+            setInsuranceStatus(parsed.insurance.status || 'unverified');
+            setInsProvider(parsed.insurance.provider || 'Blue Cross Blue Shield (BCBS)');
+            setInsPolicyNumber(parsed.insurance.policyNumber || '');
+            setInsGroupNumber(parsed.insurance.groupNumber || '');
+            setInsHolderName(parsed.insurance.holderName || parsed.name || '');
+            setInsRelationship(parsed.insurance.relationship || 'Self');
+            setInsFrontName(parsed.insurance.frontCardUrl ? 'front_card_uploaded.png' : null);
+            setInsBackName(parsed.insurance.backCardUrl ? 'back_card_uploaded.png' : null);
+          } else {
+            setInsHolderName(parsed.name || '');
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
 
   const [prescriptionFile, setPrescriptionFile] = useState<{ name: string; url: string } | null>(null);
   const [testPdfFile, setTestPdfFile] = useState<{ name: string; url: string } | null>(null);
@@ -77,6 +126,72 @@ export const AppointmentBookingModal: React.FC<Props> = ({ doctor, onClose }) =>
     setIsSubmitting(true);
 
     try {
+      // Insurance Verification flow before booking
+      if (insuranceStatus !== 'verified') {
+        if (!insPolicyNumber.trim()) {
+          alert("Health Insurance details must be securely entered and verified before booking appointments. Please enter your Policy ID.");
+          setIsSubmitting(false);
+          return;
+        }
+
+        setIsVerifyingInsurance(true);
+        setInsVerifyStepMessage("Establishing secure clearinghouse socket...");
+        await new Promise(resolve => setTimeout(resolve, 700));
+        
+        setInsVerifyStepMessage(`Verifying Member ID "${insPolicyNumber}" with ${insProvider}...`);
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        setInsVerifyStepMessage("Validating active coverage and telehealth copay tiers...");
+        await new Promise(resolve => setTimeout(resolve, 700));
+
+        // Create verified record
+        const verifiedIns = {
+          provider: insProvider,
+          policyNumber: insPolicyNumber.trim(),
+          groupNumber: insGroupNumber.trim() || 'GRP-9921',
+          holderName: insHolderName.trim() || patientName,
+          relationship: insRelationship,
+          status: 'verified' as const,
+          frontCardUrl: 'https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?auto=format&fit=crop&w=600&q=80',
+          backCardUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=600&q=80',
+          verifiedAt: new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        };
+
+        setInsuranceStatus('verified');
+        setIsVerifyingInsurance(false);
+
+        // Save back to user profile if logged in
+        if (loggedInPatient) {
+          const updatedPatient = {
+            ...loggedInPatient,
+            insurance: verifiedIns
+          };
+          localStorage.setItem('logged_in_patient', JSON.stringify(updatedPatient));
+          localStorage.setItem('patient_profile', JSON.stringify(updatedPatient));
+          
+          // sync within aily_registered_patients list
+          const stored = localStorage.getItem('aily_registered_patients');
+          if (stored) {
+            try {
+              const patients = JSON.parse(stored);
+              const index = patients.findIndex((p: any) => p.email.toLowerCase() === loggedInPatient.email.toLowerCase());
+              if (index !== -1) {
+                patients[index] = updatedPatient;
+                localStorage.setItem('aily_registered_patients', JSON.stringify(patients));
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }
+        }
+      }
+
       const createdApt = await bookAppointment({
         patientName,
         patientPhone,
@@ -103,6 +218,7 @@ export const AppointmentBookingModal: React.FC<Props> = ({ doctor, onClose }) =>
       alert("Error booking appointment. Please try again.");
     } finally {
       setIsSubmitting(false);
+      setIsVerifyingInsurance(false);
     }
   };
 
@@ -351,7 +467,167 @@ export const AppointmentBookingModal: React.FC<Props> = ({ doctor, onClose }) =>
                 </div>
               </div>
 
-              {/* 4. Upload Prescription & Test PDFs for Doctor Assessment */}
+              {/* 4. Health Insurance Verification (Required) */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-extrabold text-xs uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-blue-600" />
+                    4. Secure Health Insurance Verification *
+                  </h4>
+                  {insuranceStatus === 'verified' && (
+                    <span className="text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full tracking-wider">
+                      Verified
+                    </span>
+                  )}
+                </div>
+
+                {isVerifyingInsurance ? (
+                  <div className="p-6 text-center bg-white border border-slate-200 rounded-2xl space-y-4 animate-in fade-in duration-200">
+                    <div className="relative w-12 h-12 mx-auto">
+                      <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <ShieldCheck className="w-5 h-5 text-blue-800" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <h5 className="font-extrabold text-slate-950 text-xs">Clearinghouse Check in Progress</h5>
+                      <p className="text-[10px] text-slate-500 font-medium">{insVerifyStepMessage}</p>
+                    </div>
+                  </div>
+                ) : insuranceStatus === 'verified' ? (
+                  <div className="bg-emerald-50/60 border border-emerald-200 p-4 rounded-xl flex items-start gap-3 animate-in fade-in duration-150">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                    <div className="space-y-1 text-xs">
+                      <p className="font-extrabold text-emerald-950">Active Insurance Coverage Confirmed!</p>
+                      <p className="text-emerald-800">
+                        Provider: <strong>{insProvider}</strong> | Policy ID: <strong className="font-mono">{insPolicyNumber}</strong>
+                      </p>
+                      <p className="text-[10px] text-emerald-600/95 font-semibold">
+                        ✓ Digital policy approval token generated. Zero co-pay tier active.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setInsuranceStatus('unverified')}
+                        className="text-[10px] font-black text-blue-700 underline mt-1.5 block"
+                      >
+                        Change / Use Different Card
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3 pt-1 animate-in fade-in duration-200">
+                    <div className="bg-amber-50/70 border border-amber-200 p-3 rounded-xl flex items-start gap-2.5">
+                      <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <p className="text-[11px] text-amber-900 leading-normal font-medium">
+                        <strong>Insurance details required:</strong> To complete booking and calculate active co-payments, enter your health policy ID and carrier below. Information is validated instantly.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                          Insurance Carrier *
+                        </label>
+                        <select
+                          id="booking-ins-provider"
+                          value={insProvider}
+                          onChange={e => setInsProvider(e.target.value)}
+                          className="w-full p-2.5 rounded-lg border border-slate-300 text-xs text-slate-800 font-medium"
+                        >
+                          <option value="Blue Cross Blue Shield (BCBS)">Blue Cross Blue Shield (BCBS)</option>
+                          <option value="UnitedHealthcare (UHC)">UnitedHealthcare (UHC)</option>
+                          <option value="Aetna">Aetna</option>
+                          <option value="Cigna">Cigna</option>
+                          <option value="Kaiser Permanente">Kaiser Permanente</option>
+                          <option value="Humana">Humana</option>
+                          <option value="Medicare Part B / D">Medicare Part B / D</option>
+                          <option value="Medicaid State Plan">Medicaid State Plan</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                          Policy ID / Member ID *
+                        </label>
+                        <input
+                          type="text"
+                          id="booking-ins-policy"
+                          value={insPolicyNumber}
+                          onChange={e => setInsPolicyNumber(e.target.value)}
+                          placeholder="e.g. BCB-9921448"
+                          className="w-full p-2.5 rounded-lg border border-slate-300 text-xs text-slate-800 font-mono font-bold"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                          Primary Policy Holder *
+                        </label>
+                        <input
+                          type="text"
+                          id="booking-ins-holder"
+                          value={insHolderName}
+                          onChange={e => setInsHolderName(e.target.value)}
+                          placeholder="Name on policy card"
+                          className="w-full p-2.5 rounded-lg border border-slate-300 text-xs text-slate-800 font-semibold"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                          Relationship
+                        </label>
+                        <select
+                          id="booking-ins-relation"
+                          value={insRelationship}
+                          onChange={e => setInsRelationship(e.target.value)}
+                          className="w-full p-2.5 rounded-lg border border-slate-300 text-xs text-slate-800 font-medium"
+                        >
+                          <option value="Self">Self</option>
+                          <option value="Spouse">Spouse</option>
+                          <option value="Parent">Parent / Guardian</option>
+                          <option value="Dependent">Dependent</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Quick Mock Card Uploads inside the modal */}
+                    <div className="grid grid-cols-2 gap-3 pt-1">
+                      <div className="border border-dashed border-slate-300 rounded-lg p-2.5 text-center relative cursor-pointer hover:bg-slate-100 transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={e => setInsFrontName(e.target.files?.[0]?.name || 'card_front.png')}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                        <span className="text-[10px] font-bold text-slate-600 block">Card Scan (Front)</span>
+                        <span className="text-[9px] text-slate-400 block truncate">
+                          {insFrontName || 'Click to upload'}
+                        </span>
+                      </div>
+
+                      <div className="border border-dashed border-slate-300 rounded-lg p-2.5 text-center relative cursor-pointer hover:bg-slate-100 transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={e => setInsBackName(e.target.files?.[0]?.name || 'card_back.png')}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                        <span className="text-[10px] font-bold text-slate-600 block">Card Scan (Back)</span>
+                        <span className="text-[9px] text-slate-400 block truncate">
+                          {insBackName || 'Click to upload'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 5. Upload Prescription & Test PDFs for Doctor Assessment */}
               <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 space-y-3">
                 <div className="flex items-center gap-2">
                   <Upload className="w-4 h-4 text-blue-700" />
