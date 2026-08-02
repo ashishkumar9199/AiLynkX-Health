@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { VideoCallModal } from '../components/VideoCallModal';
 import { Appointment } from '../types';
-import { BiometricAuth, BiometricRegisterToggle } from '../components/BiometricAuth';
-import { Fingerprint } from 'lucide-react';
 import { 
   Calendar, 
   Video, 
@@ -57,7 +55,6 @@ export const PatientPortal: React.FC = () => {
     }
     return null;
   });
-  const [isBiometricOpen, setIsBiometricOpen] = useState(false);
 
   // Storage listener to keep state perfectly synchronized in real-time
   useEffect(() => {
@@ -330,15 +327,6 @@ export const PatientPortal: React.FC = () => {
             >
               Sign In to Patient Portal
             </button>
-
-            <button
-              type="button"
-              onClick={() => setIsBiometricOpen(true)}
-              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-3 rounded-2xl shadow-md transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer border border-slate-800"
-            >
-              <Fingerprint className="w-4 h-4 text-red-500 animate-pulse" />
-              <span>Sign In with TouchID / FaceID</span>
-            </button>
           </form>
         ) : (
           <form onSubmit={handleSignUpSubmit} className="space-y-4">
@@ -474,31 +462,6 @@ export const PatientPortal: React.FC = () => {
             </button>
           </form>
         )}
-
-        <BiometricAuth
-          portalId="patient"
-          isOpen={isBiometricOpen}
-          onClose={() => setIsBiometricOpen(false)}
-          onSuccess={(email) => {
-            const patients = getRegisteredPatients();
-            const foundPatient = patients.find(
-              (p: any) => p.email.toLowerCase() === email.trim().toLowerCase()
-            );
-            if (foundPatient) {
-              localStorage.setItem('logged_in_patient', JSON.stringify(foundPatient));
-              localStorage.setItem('patient_profile', JSON.stringify(foundPatient));
-              setLoggedInPatient(foundPatient);
-              addNotification({
-                title: '🔑 Patient Dashboard Unlocked',
-                message: `Welcome back, ${foundPatient.name}! You are now securely logged into your health portal using biometric security.`,
-                type: 'system',
-                targetPortal: 'patient'
-              });
-            }
-            setIsBiometricOpen(false);
-          }}
-          defaultUsername={signInEmail || 'patient@healthconnect.org'}
-        />
       </div>
     );
   }
@@ -544,13 +507,6 @@ export const PatientPortal: React.FC = () => {
           </button>
         </div>
       </div>
-
-      {/* Biometric Registry Device Bond */}
-      <BiometricRegisterToggle
-        portalId="patient"
-        username={loggedInPatient?.email}
-        displayName={loggedInPatient?.name || 'Patient'}
-      />
 
       {/* Tabs Bar */}
       <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200 overflow-x-auto text-xs font-bold gap-1">
